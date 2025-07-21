@@ -1,0 +1,5 @@
+vmi_config:
+  log_config:
+    use_json: false
+    level: error
+    disable_src_file: false

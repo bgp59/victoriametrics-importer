@@ -1,0 +1,14 @@
+# # config file version
+apiVersion: 1
+
+providers:
+- name: 'dashboards'
+  orgId: 1
+  folder: ''
+  folderUid: ''
+  type: file
+  updateIntervalSeconds: 10
+  options:
+    path: dashboards
+    foldersFromFilesStructure: true
+

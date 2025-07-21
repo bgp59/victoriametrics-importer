@@ -1,0 +1,13 @@
+#! /bin/bash --noprofile
+
+case "$0" in
+    /*|*/*) 
+        this_dir=$(cd $(dirname $0) && pwd)
+    ;;
+    *) 
+        this_dir=$(cd $(dirname $(which $0)) && pwd)
+    ;;
+esac
+
+set -ex
+$this_dir/../vmi-base/build-image

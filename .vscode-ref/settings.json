@@ -1,0 +1,24 @@
+{
+    "files.watcherExclude": {
+        "testdata/": true,
+        "vendor/": true,
+        "vendor.org/": true,
+        "volumes/": true
+    },
+    "python.analysis.exclude": [
+        "testdata/",
+	    "vendor/",
+	    "vendor.org/",
+        "volumes/"
+    ],
+    "search.exclude": {
+        "testdata/": true,
+        "vendor/": true,
+        "vendor.org/": true,
+        "volumes/": true
+    },
+    "[markdown]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4
+    }
+}

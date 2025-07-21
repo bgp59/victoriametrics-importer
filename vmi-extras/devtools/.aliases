@@ -1,0 +1,5 @@
+#! /bin/bash
+
+__tools_py_dir=$(dirname $(realpath $BASH_SOURCE))
+
+alias pyfmt=$__tools_py_dir/py-format.sh

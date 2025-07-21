@@ -1,0 +1,10 @@
+# Targets for go and docker builds.
+# - the corresponding docker build will occur only if the platform is defined
+# - the 1st platform is the preferred (default) platform when running an image
+#
+# GOOS      GOARCH      Docker platform
+# --------- ----------- -------------------------
+linux       amd64       linux/amd64
+linux       arm64       linux/arm64
+#darwin      amd64
+darwin      arm64

@@ -1,0 +1,197 @@
+# Configuration file reference/starter for VMI. Use it to prime an actual
+# importer by filling up the generators stanza.
+
+###############################################
+# VMI Generic Parameters:
+###############################################
+vmi_config:
+  # The instance name, pkg default "vmi" or app default set via
+  # `vmi.SetDefaultInstance(inst)`. It may be overridden by --instance command
+  # line arg.
+  instance: vmi
+
+  # Whether to use short hostname or not as the value for hostname label.
+  # Typically the hostname is determined from the hostname system call and if
+  # the flag below is in effect, it is stripped of domain part. However if
+  # the hostname is overridden by --hostname command line arg, that value is
+  # used as-is.
+  use_short_hostname: true
+
+  # How long to wait for a graceful shutdown. A negative value signifies
+  # indefinite wait and 0 stands for no wait at all (exit abruptly). The value
+  # should be compatible with https://pkg.go.dev/time#ParseDuration
+  shutdown_max_wait: 5s
+
+  ###############################################
+  # Scheduler
+  ###############################################
+  scheduler_config:
+    # The number of workers in the pool controls the level of concurrency of task
+    # execution and it allows for short tasks to be executed without having to
+    # wait for a long one to complete. If set to -1 it will match the number of
+    # available cores but not more than SCHEDULER_MAX_NUM_WORKERS.
+    num_workers: -1
+
+  ###############################################
+  # Compressor Pool
+  ###############################################
+  compressor_pool_config:
+    # The number of compressors. If set to -1 it will match the number of
+    # available cores but not more than COMPRESSOR_POOL_MAX_NUM_COMPRESSORS:
+    num_compressors: -1
+
+    # Buffer pool max size; buffers are pulled by metrics generators as needed and
+    # they are returned after they are compressed. The pool max size controls only
+    # how many idle buffers are being kept around, since they are created as many
+    # as requested but they are discarded if they exceed the value below. A value
+    # too small leads to object churning and a value too large may waste memory.
+    buffer_pool_max_size: 64
+
+    # Metrics queue size, it should be deep enough to accommodate metrics up to
+    # send_buffer_timeout:
+    metrics_queue_size: 64
+
+    # Compression level: 0..9, -1 stands for gzip.DefaultCompression:
+    compression_level: -1
+
+    # Batch target size; metrics will be read from the queue until the
+    # compressed size is ~ to the value below. The value can have the usual `k`
+    # or `m` suffixes for KiB or MiB accordingly.
+    batch_target_size: 64k
+
+    # Flush interval. If batch_target_size is not reached before this interval
+    # expires, the metrics compressed thus far are being sent anyway. Use 0 to
+    # disable time flush. The value should be compatible with
+    # https://pkg.go.dev/time#ParseDuration
+    flush_interval: 5s
+
+  ###############################################
+  # HTTP Endpoint Pool
+  ###############################################
+  http_endpoint_pool_config:
+    # The list of endpoint URLs. Each URL may have an associated threshold for
+    # failed accesses count, used for declaring the endpoint unhealthy; this may
+    # be > 1 for cases where the host name part of the URL is some kind of a DNS
+    # pool which is resolved to a list of addresses, in which case it should be
+    # set to the number of pool members expected to be unavailable simultaneously.
+    # Just because one member is unhealthy, it doesn't mean that others cannot be
+    # used. The net/http Transport connection cache will remove the failed
+    # connection and the name to address resolution mechanism should no longer
+    # resolve to this failed IP.
+    endpoints:
+      - url: http://localhost:8428/api/v1/import/prometheus
+        #mark_unhealthy_threshold: 1 # If not defined the pool default will be used
+
+    # The username to use for basic authentication, if any. If the value is empty,
+    # no authentication is used.
+    username: ""
+    # The password to use for basic authentication, if any. The value is first
+    # subject to env var interpolation. If the resulting string starts with
+    # "file://", then the rest of the string is interpreted as a path to a file
+    # containing the password, which is the RECOMMENDED way to pass the password
+    # since this configuration file may be publicly available (e.g. in a
+    # repository).
+    password: ""
+
+    # Pool default for unhealthy threshold:
+    mark_unhealthy_threshold: 1
+
+    # Whether the endpoint list should be shuffled or not. Shuffling is
+    # recommended if the config file is shared by all collectors, such they all
+    # start with the *same* configured endpoint list; the shuffle will help
+    # distribute the load across all endpoints:
+    shuffle: false
+
+    # How often to rotate the healthy endpoint list, to load balance the
+    # connections. Set to 0 to rotate after every use or to -1s to disable the
+    # rotation. The value must be compatible with
+    # https://pkg.go.dev/time#ParseDuration
+    healthy_rotate_interval: 5m
+
+    # After what time to reset the cumulative error count of a failed endpoint.
+    # A failed endpoint is moved to the back of the usable list, as long as the
+    # cumulative error count is less than the threshold. If enough time passes
+    # before it makes it back to the head of the list, then the error count used
+    # to declare it unhealthy is no longer relevant and it should be reset. Use 0
+    # to disable. The value must be compatible with
+    # https://pkg.go.dev/time#ParseDuration
+    error_reset_interval: 1m
+
+    # How often to check if an unhealthy endpoint has become healthy. The value
+    # must be compatible with https://pkg.go.dev/time#ParseDuration and >= 1s
+    health_check_interval: 5s
+
+    # How long to wait for a healthy endpoint, in case healthy is empty; normally
+    # this should be > health_check_interval. The value must be compatible with
+    # https://pkg.go.dev/time#ParseDuration
+    healthy_max_wait: 6s
+
+    # How long to wait for a SendBuffer call to succeed; normally this should be
+    # longer than healthy_max_wait or other HTTP timeouts:
+    send_buffer_timeout: 30s
+
+    # Rate limit in Mbps; it may be specified as FLOAT or FLOAT:INTERVAL, where
+    # INTERVAL must be compatible with https://pkg.go.dev/time#ParseDuration.
+    # INTERVAL determines the granularity of traffic control and in general the
+    # smaller the value, the smoother the traffic. The default is "1s" and
+    # shouldn't be smaller than "50ms". Leave empty/undefined for no limit.
+    rate_limit_mbps:
+
+    # Ignore TLS verification errors, e.g. self-signed certificates:
+    ignore_tls_verify: false
+
+    # Parameters for https://pkg.go.dev/net#Dialer:
+    # Timeout:
+    tcp_conn_timeout: 2s
+    # KeepAlive:
+    tcp_keep_alive: 15s
+    # Parameters for https://pkg.go.dev/net/http#Transport:
+    # MaxIdleConns:
+    max_idle_conns: 0
+    # MaxIdleConnsPerHost:
+    max_idle_conns_per_host: 1
+    # MaxConnsPerHost:
+    max_conns_per_host: 0
+    # IdleConnTimeout:
+    idle_conn_timeout: 1m
+    # Parameters for https://pkg.go.dev/net/http#Client:
+    # Timeout:
+    response_timeout: 5s
+
+  ###############################################
+  # Logger
+  ###############################################
+  log_config:
+    # Whether to log in JSON format:
+    use_json: false
+
+    # The log level, must be one of the following:
+    #   panic, fatal, error, warning, info, debug, trace
+    # Override w/ --log-level=LEVEL 
+    log_level: info
+
+    # Whether to disable report file:line#:
+    disable_src_file: false
+
+    # Whether to log to a file or stderr or empty to log to stderr.
+    # Override w/ --log-file=PATH
+    log_file: stderr
+
+    # Log file max size, in MB, before rotation, use 0 to disable:
+    log_file_max_size_mb: 10
+
+    # How many older log files to keep upon rotation:
+    log_file_max_backup_num: 1
+
+  ###############################################
+  # Internal metrics
+  ###############################################
+  internal_metrics_config:
+    # How often to generate the metrics. The format must be compatible with
+    # https://pkg.go.dev/time#ParseDuration
+    interval: 5s
+
+###############################################
+# Generators Parameters:
+###############################################
+#generators:
