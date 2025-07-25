@@ -83,10 +83,20 @@ func AddCallerSrcPathPrefixToLogger(upNDirs int) {
 	vmi_internal.AddCallerSrcPathPrefixToLogger(upNDirs, 1)
 }
 
-// Utility function to build a basic auth header value from the username and
-// password. The password is is first subject to env var interpolation. If the
-// resulting string starts with "file://", then the rest of the string is
-// interpreted as a path to a file containing the password:
+// Utility functions for loading a password spec and for building a basic auth
+// header.
+//
+// The password may start with the following prefixes:
+//
+//	file:PATH      env var expand PATH and read from that file
+//	env:ENVVAR     expand ENVVAR
+//	pass:PASSWORD  verbatim PASSWORD
+//
+// All other values are used verbatim.
+func LoadPasswordSpec(password string) (string, error) {
+	return vmi_internal.LoadPasswordSpec(password)
+}
+
 func BuildHtmlBasicAuth(username, password string) (string, error) {
 	return vmi_internal.BuildHtmlBasicAuth(username, password)
 }

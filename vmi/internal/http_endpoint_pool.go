@@ -66,8 +66,10 @@ const (
 	// http.Client config default values:
 	HTTP_ENDPOINT_POOL_CONFIG_RESPONSE_TIMEOUT_DEFAULT = 5 * time.Second
 
-	// If the password field starts with file prefix, then it is read from a file:
-	HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_FILE_PREFIX = "file://"
+	// Prefixes for the password field:
+	HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_FILE_PREFIX = "file:"
+	HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_ENV_PREFIX  = "env:"
+	HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_PASS_PREFIX = "pass:"
 )
 
 // The HTTP endpoint pool interface as seen by the compressor:
@@ -402,21 +404,32 @@ func (poolCfg *HttpEndpointPoolConfig) OverrideEndpoints(urlList string) {
 	}
 }
 
+func LoadPasswordSpec(password string) (string, error) {
+	if strings.HasPrefix(password, HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_FILE_PREFIX) {
+		passwordFile := os.ExpandEnv(password[len(HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_FILE_PREFIX):])
+		if content, err := os.ReadFile(passwordFile); err != nil {
+			return "", fmt.Errorf("LoadPasswordSpec: password file: %s: %v", passwordFile, err)
+		} else {
+			password = strings.TrimSpace(string(content))
+		}
+	} else if strings.HasPrefix(password, HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_ENV_PREFIX) {
+		password = os.Getenv(password[len(HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_ENV_PREFIX):])
+	} else if strings.HasPrefix(password, HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_PASS_PREFIX) {
+		password = password[len(HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_PASS_PREFIX):]
+	}
+	return password, nil
+}
+
 func BuildHtmlBasicAuth(username, password string) (string, error) {
 	authorization := ""
 	if username != "" {
-		password = os.ExpandEnv(password)
-		if strings.HasPrefix(password, HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_FILE_PREFIX) {
-			passwordFile := password[len(HTTP_ENDPOINT_POOL_CONFIG_PASSWORD_FILE_PREFIX):]
-			if content, err := os.ReadFile(passwordFile); err != nil {
-				return "", fmt.Errorf("BuildHtmlBasicAuth: password file: %s: %v", passwordFile, err)
-			} else {
-				password = strings.TrimSpace(string(content))
-			}
+		if password, err := LoadPasswordSpec(password); err == nil {
+			authorization = "Basic " + base64.StdEncoding.EncodeToString(
+				[]byte(username+":"+password),
+			)
+		} else {
+			return "", err
 		}
-		authorization = "Basic " + base64.StdEncoding.EncodeToString(
-			[]byte(username+":"+password),
-		)
 	}
 	return authorization, nil
 }

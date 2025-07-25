@@ -84,12 +84,12 @@ vmi_config:
     # The username to use for basic authentication, if any. If the value is empty,
     # no authentication is used.
     username: ""
-    # The password to use for basic authentication, if any. The value is first
-    # subject to env var interpolation. If the resulting string starts with
-    # "file://", then the rest of the string is interpreted as a path to a file
-    # containing the password, which is the RECOMMENDED way to pass the password
-    # since this configuration file may be publicly available (e.g. in a
-    # repository).
+    # The password to use for basic authentication, if any. The value may start
+    # with the following prefixes:
+    #   file:PATH       env var expand PATH and read from that file 
+    #   env:ENVVAR      expand ENVVAR 
+    #   pass:PASSWORD   verbatim PASSWORD
+    # All other values are used verbatim. file:PATH is the preferred format.
     password: ""
 
     # Pool default for unhealthy threshold:
