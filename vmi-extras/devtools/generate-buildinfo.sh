@@ -19,7 +19,14 @@ echo '
 
 package main
 
-var GitInfo = "'$(git describe --all --dirty=-dirty --long --abbrev=16)'"
+var GitInfo = "'$(
+    if [[ -n "$(git status --porcelain)" ]]; then
+        dirty="-dirty"
+    else
+        dirty=""
+    fi
+    echo $(git rev-parse HEAD)${dirty}
+)'"
 var Version = "'$semver'"
 ' > buildinfo.go
 
