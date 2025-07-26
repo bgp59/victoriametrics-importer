@@ -146,7 +146,7 @@ func (internalMetrics *InternalMetrics) initialize() {
 	}
 	internalMetrics.vmiBuildinfoMetric = []byte(fmt.Sprintf(
 		`%s{%s="%s",%s="%s",%s="%s",%s="%s"} 1`, // value included
-		VMI_BUILDINFO_METRIC,
+		VMI_BUILD_INFO_METRIC,
 		INSTANCE_LABEL_NAME, instance,
 		HOSTNAME_LABEL_NAME, hostname,
 		VMI_VERSION_LABEL_NAME, version,

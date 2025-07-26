@@ -347,13 +347,13 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum without(__name__) (last_over_time(vmi_buildinfo[${lookback}]))",
+              "expr": "sum without(__name__) (last_over_time(vmi_build_info[${lookback}]))",
               "format": "table",
               "hide": false,
               "instant": true,
               "legendFormat": "__auto",
               "range": false,
-              "refId": "vmi_buildinfo"
+              "refId": "vmi_build_info"
             }
           ],
           "title": "Agents",
@@ -368,7 +368,7 @@
                 "excludeByName": {
                   "Value #os_info": true,
                   "Value #os_release": true,
-                  "Value #vmi_buildinfo": true,
+                  "Value #vmi_build_info": true,
                   "os_info_release": true,
                   "os_rel_id": true,
                   "os_rel_pretty_name": true,
@@ -380,7 +380,7 @@
                   "Value #os_info": 10,
                   "Value #os_release": 17,
                   "Value #os_uptime_sec": 4,
-                  "Value #vmi_buildinfo": 19,
+                  "Value #vmi_build_info": 19,
                   "Value #vmi_uptime_sec": 3,
                   "hostname": 1,
                   "os_info_machine": 9,

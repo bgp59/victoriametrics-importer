@@ -5,7 +5,7 @@
 - [General Information](#general-information)
 - [Agent Metrics](#agent-metrics)
   - [vmi_uptime_sec](#vmi_uptime_sec)
-  - [vmi_buildinfo](#vmi_buildinfo)
+  - [vmi_build_info](#vmi_build_info)
   - [vmi_proc_pcpu](#vmi_proc_pcpu)
 - [Compressor Pool Metrics](#compressor-pool-metrics)
   - [vmi_compressor_read_delta](#vmi_compressor_read_delta)
@@ -76,7 +76,7 @@ Time, in seconds, since the agent was started.
   | vmi_inst | _instance_ |
   | hostname | _hostname_ |
 
-### vmi_buildinfo
+### vmi_build_info
 
 Categorical metric (constant `1`) with build info:
 

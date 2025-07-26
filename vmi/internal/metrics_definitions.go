@@ -85,7 +85,7 @@ const (
 	// Importer metric:
 	VMI_UPTIME_METRIC = "vmi_uptime_sec" // heartbeat
 
-	VMI_BUILDINFO_METRIC    = "vmi_buildinfo"
+	VMI_BUILD_INFO_METRIC   = "vmi_build_info"
 	VMI_VERSION_LABEL_NAME  = "vmi_version"
 	VMI_GIT_INFO_LABEL_NAME = "vmi_git_info"
 
