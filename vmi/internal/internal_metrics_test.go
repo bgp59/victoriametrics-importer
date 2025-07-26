@@ -18,6 +18,7 @@ type InternalMetricsTestCase struct {
 	Description         string
 	Instance            string
 	Hostname            string
+	CycleNum            int
 	PromTs              int64
 	PrevPromTs          *int64
 	Version             string
@@ -57,8 +58,9 @@ func newTestInternalMetrics(tc *InternalMetricsTestCase) (*InternalMetrics, erro
 	internalMetrics.startTs = &startTs
 	internalMetrics.osInfo = maps.Clone(tc.OsInfo)
 	internalMetrics.osRelease = maps.Clone(tc.OsRelease)
-	if tc.PrevPromTs != nil {
+	if tc.PrevPromTs != nil || tc.CycleNum > 0 {
 		internalMetrics.initialize()
+		internalMetrics.CycleNum = tc.CycleNum
 		internalMetrics.GenBaseMetricsStart(nil, time.UnixMilli(*tc.PrevPromTs))
 	}
 	return internalMetrics, nil

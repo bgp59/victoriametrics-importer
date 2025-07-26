@@ -11,7 +11,8 @@ import (
 
 // Generate internal metrics:
 const (
-	INTERNAL_METRICS_CONFIG_INTERVAL_DEFAULT = 5 * time.Second
+	INTERNAL_METRICS_CONFIG_INTERVAL_DEFAULT            = 5 * time.Second
+	INTERNAL_METRICS_CONFIG_FULL_METRICS_FACTOR_DEFAULT = 12
 
 	// This generator id:
 	INTERNAL_METRICS_ID = "internal_metrics"
@@ -38,12 +39,14 @@ var OSReleaseLabelKeys = []string{
 }
 
 type InternalMetricsConfig struct {
-	Interval time.Duration `yaml:"interval"`
+	Interval          time.Duration `yaml:"interval"`
+	FullMetricsFactor int           `yaml:"full_metrics_factor"`
 }
 
 func DefaultInternalMetricsConfig() *InternalMetricsConfig {
 	return &InternalMetricsConfig{
-		Interval: INTERNAL_METRICS_CONFIG_INTERVAL_DEFAULT,
+		Interval:          INTERNAL_METRICS_CONFIG_INTERVAL_DEFAULT,
+		FullMetricsFactor: INTERNAL_METRICS_CONFIG_FULL_METRICS_FACTOR_DEFAULT,
 	}
 }
 
@@ -74,10 +77,11 @@ type InternalMetrics struct {
 	mGenFuncList []internalMetricsGenFunc
 
 	// Cache for additional metrics:
-	vmiUptimeMetric []byte
-	osInfoMetric    []byte
-	osReleaseMetric []byte
-	osUptimeMetric  []byte
+	vmiUptimeMetric    []byte
+	vmiBuildinfoMetric []byte
+	osInfoMetric       []byte
+	osReleaseMetric    []byte
+	osUptimeMetric     []byte
 
 	// The following additional fields are needed for testing only. Left to
 	// their default values, the usual objects will be used.
@@ -98,8 +102,9 @@ func NewInternalMetrics(internalMetricsCfg *InternalMetricsConfig) (*InternalMet
 	}
 	internalMetrics := &InternalMetrics{
 		GeneratorBase: GeneratorBase{
-			Id:       INTERNAL_METRICS_ID,
-			Interval: internalMetricsCfg.Interval,
+			Id:                INTERNAL_METRICS_ID,
+			Interval:          internalMetricsCfg.Interval,
+			FullMetricsFactor: internalMetricsCfg.FullMetricsFactor,
 		},
 	}
 	internalMetrics.schedulerMetrics = NewSchedulerInternalMetrics(internalMetrics)
@@ -112,14 +117,25 @@ func NewInternalMetrics(internalMetricsCfg *InternalMetricsConfig) (*InternalMet
 	internalMetrics.goMetrics = NewGoInternalMetrics(internalMetrics)
 	internalMetrics.processMetrics = NewProcessInternalMetrics(internalMetrics)
 	internalMetrics.generatorMetrics = NewGeneratorInternalMetrics(internalMetrics)
-	internalMetricsLog.Infof("id=%s, interval=%s", internalMetrics.Id, internalMetrics.Interval)
+	internalMetricsLog.Infof(
+		"id=%s, interval=%s, full_metrics_factor=%d",
+		internalMetrics.Id, internalMetrics.Interval, internalMetrics.FullMetricsFactor,
+	)
 	return internalMetrics, nil
 }
 
 func (internalMetrics *InternalMetrics) initialize() {
 	internalMetrics.GenBaseInit()
+	internalMetrics.CycleNum = GetInitialCycleNum(internalMetrics.FullMetricsFactor)
 
 	instance, hostname := internalMetrics.Instance, internalMetrics.Hostname
+
+	internalMetrics.vmiUptimeMetric = []byte(fmt.Sprintf(
+		`%s{%s="%s",%s="%s"} `, // N.B. whitespace before value!
+		VMI_UPTIME_METRIC,
+		INSTANCE_LABEL_NAME, instance,
+		HOSTNAME_LABEL_NAME, hostname,
+	))
 
 	version, gitInfo := Version, GitInfo
 	if internalMetrics.version != "" {
@@ -128,9 +144,9 @@ func (internalMetrics *InternalMetrics) initialize() {
 	if internalMetrics.gitInfo != "" {
 		gitInfo = internalMetrics.gitInfo
 	}
-	internalMetrics.vmiUptimeMetric = []byte(fmt.Sprintf(
-		`%s{%s="%s",%s="%s",%s="%s",%s="%s"} `, // N.B. whitespace before value!
-		VMI_UPTIME_METRIC,
+	internalMetrics.vmiBuildinfoMetric = []byte(fmt.Sprintf(
+		`%s{%s="%s",%s="%s",%s="%s",%s="%s"} 1`, // value included
+		VMI_BUILDINFO_METRIC,
 		INSTANCE_LABEL_NAME, instance,
 		HOSTNAME_LABEL_NAME, hostname,
 		VMI_VERSION_LABEL_NAME, version,
@@ -192,7 +208,8 @@ func (internalMetrics *InternalMetrics) initialize() {
 }
 
 func (internalMetrics *InternalMetrics) TaskAction() bool {
-	if !internalMetrics.Initialized {
+	firstPass := !internalMetrics.Initialized
+	if firstPass {
 		internalMetrics.initialize()
 	}
 
@@ -270,18 +287,24 @@ func (internalMetrics *InternalMetrics) TaskAction() bool {
 	buf.Write(tsSuffix)
 	metricsCount++
 
-	buf.Write(internalMetrics.osInfoMetric)
-	buf.Write(tsSuffix)
-	metricsCount++
-
-	buf.Write(internalMetrics.osReleaseMetric)
-	buf.Write(tsSuffix)
-	metricsCount++
-
 	buf.Write(internalMetrics.osUptimeMetric)
 	buf.WriteString(strconv.FormatFloat(ts.Sub(*internalMetrics.bootTime).Seconds(), 'f', UPTIME_METRIC_PRECISION, 64))
 	buf.Write(tsSuffix)
 	metricsCount++
+
+	if firstPass || internalMetrics.CycleNum == 0 {
+		buf.Write(internalMetrics.vmiBuildinfoMetric)
+		buf.Write(tsSuffix)
+		metricsCount++
+
+		buf.Write(internalMetrics.osInfoMetric)
+		buf.Write(tsSuffix)
+		metricsCount++
+
+		buf.Write(internalMetrics.osReleaseMetric)
+		buf.Write(tsSuffix)
+		metricsCount++
+	}
 
 	// Add this generator's metrics by hand since it is the one that generates
 	// such metrics so it cannot include itself in the general framework:
@@ -318,6 +341,11 @@ func (internalMetrics *InternalMetrics) TaskAction() bool {
 	buf.Write(tsSuffix)
 
 	metricsQueue.QueueBuf(buf)
+
+	if internalMetrics.CycleNum++; internalMetrics.CycleNum >= internalMetrics.FullMetricsFactor {
+		internalMetrics.CycleNum = 0
+	}
+
 	return true
 }
 

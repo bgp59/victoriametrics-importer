@@ -79,7 +79,7 @@
                 },
                 "filterable": false,
                 "inspect": false,
-                "minWidth": 80
+                "minWidth": 0
               },
               "mappings": [],
               "thresholds": {
@@ -101,92 +101,24 @@
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "VMI Uptime"
+                  "options": "Value #vmi_uptime_sec"
                 },
                 "properties": [
                   {
                     "id": "unit",
                     "value": "dtdhms"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 112
                   }
                 ]
               },
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "OS Uptime"
+                  "options": "Value #os_uptime_sec"
                 },
                 "properties": [
                   {
                     "id": "unit",
                     "value": "dtdhms"
-                  },
-                  {
-                    "id": "custom.width",
-                    "value": 105
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Distro Ver"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 85
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Distro"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 85
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "VMI Ver"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 78
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "VMI Inst"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 83
-                  }
-                ]
-              },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "Hostname"
-                },
-                "properties": [
-                  {
-                    "id": "custom.width",
-                    "value": 181
                   }
                 ]
               },
@@ -198,19 +130,67 @@
                 "properties": [
                   {
                     "id": "custom.width",
-                    "value": 201
+                    "value": 196
                   }
                 ]
               },
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "OS Name"
+                  "options": "Hostname"
                 },
                 "properties": [
                   {
                     "id": "custom.width",
-                    "value": 86
+                    "value": 174
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "VMI Inst"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 88
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "VMI Uptime"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 158
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "VMI Ver"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 76
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "OS"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 80
                   }
                 ]
               },
@@ -222,19 +202,55 @@
                 "properties": [
                   {
                     "id": "custom.width",
-                    "value": 93
+                    "value": 82
                   }
                 ]
               },
               {
                 "matcher": {
                   "id": "byName",
-                  "options": "Arch"
+                  "options": "OS Arch"
                 },
                 "properties": [
                   {
                     "id": "custom.width",
-                    "value": 81
+                    "value": 99
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Distro"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 86
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Distro Ver"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 86
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "OS Uptime"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 150
                   }
                 ]
               }
@@ -251,6 +267,7 @@
           "options": {
             "footer": {
               "countRows": false,
+              "enablePagination": false,
               "fields": "",
               "reducer": [
                 "sum"
@@ -285,7 +302,7 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "vmi_os_uptime_sec\n* on (vmi_inst, hostname) group_right()\nvmi_os_info",
+              "expr": "sum without(__name__) (vmi_os_uptime_sec)",
               "format": "table",
               "hide": false,
               "instant": true,
@@ -300,13 +317,43 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum without (__name__) (vmi_os_release)",
+              "expr": "sum without(__name__) (last_over_time(vmi_os_info[${lookback}]))",
               "format": "table",
               "hide": false,
               "instant": true,
               "legendFormat": "__auto",
               "range": false,
-              "refId": "A"
+              "refId": "os_info"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum without(__name__) (last_over_time(vmi_os_release[${lookback}]))",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "os_release"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "exemplar": false,
+              "expr": "sum without(__name__) (last_over_time(vmi_buildinfo[${lookback}]))",
+              "format": "table",
+              "hide": false,
+              "instant": true,
+              "legendFormat": "__auto",
+              "range": false,
+              "refId": "vmi_buildinfo"
             }
           ],
           "title": "Agents",
@@ -319,7 +366,9 @@
               "id": "organize",
               "options": {
                 "excludeByName": {
-                  "Value #A": true,
+                  "Value #os_info": true,
+                  "Value #os_release": true,
+                  "Value #vmi_buildinfo": true,
                   "os_info_release": true,
                   "os_rel_id": true,
                   "os_rel_pretty_name": true,
@@ -328,36 +377,38 @@
                 },
                 "indexByName": {
                   "Time": 0,
-                  "Value #A": 17,
-                  "Value #os_uptime_sec": 15,
-                  "Value #vmi_uptime_sec": 14,
+                  "Value #os_info": 10,
+                  "Value #os_release": 17,
+                  "Value #os_uptime_sec": 4,
+                  "Value #vmi_buildinfo": 19,
+                  "Value #vmi_uptime_sec": 3,
                   "hostname": 1,
-                  "os_info_machine": 8,
+                  "os_info_machine": 9,
                   "os_info_name": 6,
-                  "os_info_release": 9,
-                  "os_info_version": 7,
+                  "os_info_release": 7,
+                  "os_info_version": 8,
                   "os_rel_id": 11,
-                  "os_rel_name": 4,
-                  "os_rel_pretty_name": 12,
-                  "os_rel_version": 10,
-                  "os_rel_version_codename": 13,
-                  "os_rel_version_id": 5,
-                  "vmi_git_info": 16,
+                  "os_rel_name": 12,
+                  "os_rel_pretty_name": 13,
+                  "os_rel_version": 14,
+                  "os_rel_version_codename": 15,
+                  "os_rel_version_id": 16,
+                  "vmi_git_info": 18,
                   "vmi_inst": 2,
-                  "vmi_version": 3
+                  "vmi_version": 5
                 },
                 "renameByName": {
+                  "Value #os_info": "",
+                  "Value #os_release": "",
                   "Value #os_uptime_sec": "OS Uptime",
                   "Value #vmi_uptime_sec": "VMI Uptime",
                   "hostname": "Hostname",
-                  "os_info_machine": "Arch",
-                  "os_info_name": "OS Name",
-                  "os_info_release": "OS Rel",
+                  "os_info_machine": "OS Arch",
+                  "os_info_name": "OS",
                   "os_info_version": "OS Ver",
                   "os_rel_name": "Distro",
-                  "os_rel_version": "",
                   "os_rel_version_id": "Distro Ver",
-                  "vmi_git_info": "VMI Git Info",
+                  "vmi_git_info": "Git Info",
                   "vmi_inst": "VMI Inst",
                   "vmi_version": "VMI Ver"
                 }
@@ -3137,7 +3188,32 @@
               },
               "unit": "percent"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "__systemRef": "hideSeriesFrom",
+                "matcher": {
+                  "id": "byNames",
+                  "options": {
+                    "mode": "exclude",
+                    "names": [
+                      "Emys-MacBook-Air/refvmi"
+                    ],
+                    "prefix": "All except:",
+                    "readOnly": true
+                  }
+                },
+                "properties": [
+                  {
+                    "id": "custom.hideFrom",
+                    "value": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": true
+                    }
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 8,
@@ -3356,15 +3432,18 @@
         "type": "query"
       },
       {
-        "current": {
-          "selected": true,
-          "text": "5s",
-          "value": "5s"
-        },
         "description": "Should match the internal metrics sample interval.",
         "hide": 2,
         "name": "interval",
         "query": "5s",
+        "skipUrlSync": false,
+        "type": "constant"
+      },
+      {
+        "description": "interval x full_metrics_factor",
+        "hide": 2,
+        "name": "lookback",
+        "query": "1m",
         "skipUrlSync": false,
         "type": "constant"
       }
@@ -3378,6 +3457,6 @@
   "timezone": "",
   "title": "internal-metrics-ref",
   "uid": "internal-metrics-ref",
-  "version": 1752619658,
+  "version": 1753497712,
   "weekStart": ""
 }

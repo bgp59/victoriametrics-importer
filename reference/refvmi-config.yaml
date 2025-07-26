@@ -190,6 +190,10 @@ vmi_config:
     # https://pkg.go.dev/time#ParseDuration
     interval: 5s
 
+    # Full metrics factor N. All metrics are generated every N cycle, regardless
+    # of change. Applicable for static metrics, such as info. Use 0 to disable.
+    full_metrics_factor: 12
+
 ###############################################
 # Generator Parameters:
 ###############################################

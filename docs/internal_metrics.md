@@ -5,6 +5,7 @@
 - [General Information](#general-information)
 - [Agent Metrics](#agent-metrics)
   - [vmi_uptime_sec](#vmi_uptime_sec)
+  - [vmi_buildinfo](#vmi_buildinfo)
   - [vmi_proc_pcpu](#vmi_proc_pcpu)
 - [Compressor Pool Metrics](#compressor-pool-metrics)
   - [vmi_compressor_read_delta](#vmi_compressor_read_delta)
@@ -68,14 +69,25 @@ These are metrics relating to the agent itself. There is no partial/full cycle a
 
 ### vmi_uptime_sec
 
-  Time, in seconds, since the agent was started.
+Time, in seconds, since the agent was started.
   
   | Label Name | Value(s)/Info |
   | --- | --- |
   | vmi_inst | _instance_ |
   | hostname | _hostname_ |
+
+### vmi_buildinfo
+
+Categorical metric (constant `1`) with build info:
+
+**NOTE!** Generated for full cycle only.
+
+  | Label Name | Value(s)/Info |
+  | --- | --- |
+  | vmi_inst | _instance_ |
+  | hostname | _hostname_ |
   | version | semver of the agent |
-  | gitinfo | git describe based |
+  | gitinfo | _commit-id_\[-dirty\] |
 
 ### vmi_proc_pcpu
 
@@ -250,6 +262,8 @@ The number of endpoint errors since the last scan.
 
 Categorical metric (constant `1`) with Unix [uname](https://linux.die.net/man/1/uname) info:
 
+**NOTE!** Generated for full cycle only.
+
   | Label Name | Value(s)/Info |
   | --- | --- |
   | vmi_inst | _instance_ |
@@ -262,6 +276,8 @@ Categorical metric (constant `1`) with Unix [uname](https://linux.die.net/man/1/
 ### vmi_os_release
 
 Categorical metric (constant `1`) with [os-release](https://man7.org/linux/man-pages/man5/os-release.5.html) info:
+
+**NOTE!** Generated for full cycle only.
 
   | Label Name | Value(s)/Info |
   | --- | --- |
