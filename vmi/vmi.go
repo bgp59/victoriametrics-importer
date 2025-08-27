@@ -59,7 +59,7 @@ func GetHostname() string {
 // case for call is during tests, as follows:
 //
 //	func TestSomethingWithLogger() {
-//		tlc := vmi_testutils.NewTestLogCollect(t, vmi.GetRootLogger(), nil)
+//		tlc := vmi_testutils.NewTestCollectableLogger(t, vmi.GetRootLogger(), nil)
 //		defer tlc.RestoreLog()
 //		// Everything logged via the VMI logger will be captured by the tlc object
 //		// and it will be displayed in the test output at the end, if the test fails
@@ -78,10 +78,7 @@ func NewCompLogger(comp string) *logrus.Entry {
 // path to it. The latter is inferred from the caller's file path, going up
 // N dirs. Typically the call is made from main.init() so the parameter is 0
 // (assuming that main.go is at the root dir of the module).
-func AddCallerSrcPathPrefixToLogger(upNDirs int) {
-	// skip = 1 below to base the caller's path on the caller of this function.
-	vmi_internal.AddCallerSrcPathPrefixToLogger(upNDirs, 1)
-}
+var AddCallerSrcPathPrefixToLogger = vmi_internal.RootLogger.AddCallerSrcPathPrefix
 
 // Utility functions for loading a password spec and for building a basic auth
 // header.

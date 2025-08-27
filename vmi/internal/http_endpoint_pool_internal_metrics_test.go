@@ -33,7 +33,7 @@ func newTestHttpEndpointPoolInternalMetrics(tc *HttpEndpointPoolInternalMetricsT
 }
 
 func testHttpEndpointPoolInternalMetrics(tc *HttpEndpointPoolInternalMetricsTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, nil)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, nil)
 	defer tlc.RestoreLog()
 
 	t.Logf("Description: %s", tc.Description)

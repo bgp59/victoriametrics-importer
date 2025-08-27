@@ -261,7 +261,7 @@ type MetricsGeneratorTestCase struct {
 func testMetricsGenerator(tc *MetricsGeneratorTestCase, t *testing.T) {
    // Collect VMI logger's output and display it via testing logger in case 
    // of error or of verbose invocation.
-   tlc := vmi_testutils.NewTestLogCollect(t, vmi.GetRootLogger(), nil)
+   tlc := vmi_testutils.NewTestCollectableLogger(t, vmi.GetRootLogger(), nil)
    defer tlc.RestoreLog()
    
    t.Logf("Description: %s", tc.Description)

@@ -81,7 +81,7 @@ func testSchedulerBuildTestTaskList(tc *SchedulerExecuteTestCase) []*TestTask {
 }
 
 func testSchedulerExecute(tc *SchedulerExecuteTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, nil)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, nil)
 	defer tlc.RestoreLog()
 
 	numWorkers := tc.numWorkers

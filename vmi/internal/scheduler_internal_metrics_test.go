@@ -34,7 +34,7 @@ func newTestSchedulerInternalMetrics(tc *SchedulerInternalMetricsTestCase) (*Int
 }
 
 func testSchedulerInternalMetrics(tc *SchedulerInternalMetricsTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, nil)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, nil)
 	defer tlc.RestoreLog()
 
 	t.Logf("Description: %s", tc.Description)

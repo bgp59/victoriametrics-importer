@@ -115,7 +115,7 @@ func makeTestCompressorPool(tc *CompressorPoolTestCase) (*CompressorPool, error)
 }
 
 func testCompressorPoolCreate(tc *CompressorPoolTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, logrus.DebugLevel)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, logrus.DebugLevel)
 	defer tlc.RestoreLog()
 
 	pool, err := makeTestCompressorPool(tc)
@@ -131,7 +131,7 @@ func testCompressorPoolCreate(tc *CompressorPoolTestCase, t *testing.T) {
 }
 
 func testCompressorPoolQueue(tc *CompressorPoolTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, logrus.DebugLevel)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, logrus.DebugLevel)
 	defer tlc.RestoreLog()
 
 	pool, err := makeTestCompressorPool(tc)

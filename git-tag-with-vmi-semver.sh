@@ -42,7 +42,7 @@ if [[ -z "$semver" ]]; then
 fi
 
 set -x
-exec git-tag.sh $force $semver
+exec git-tag.sh $force vmi/$semver
 
 
  

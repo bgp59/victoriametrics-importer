@@ -10,6 +10,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/bgp59/logrusx"
 )
 
 // The runner is the main entry point for an instance VMI importer.
@@ -164,23 +166,6 @@ var (
 		),
 	)
 
-	loggerLevelArg = flag.String(
-		"log-level",
-		"",
-		FormatFlagUsage(fmt.Sprintf(
-			`Override the "vmi_config.log_config.log_level" config setting, it should be one of the %q values`,
-			GetLogLevelNames(),
-		)),
-	)
-
-	loggerFileArg = flag.String(
-		"log-file",
-		"",
-		FormatFlagUsage(
-			`Override the config "vmi_config.log_config.log_file" config setting`,
-		),
-	)
-
 	httpPoolEndpointsArg = flag.String(
 		"http-pool-endpoints",
 		"",
@@ -189,6 +174,10 @@ var (
 		),
 	)
 )
+
+func init() {
+	logrusx.EnableLoggerArgs()
+}
 
 // The runner is the main entry point for an actual VMI importer instance. It
 // should be called with the default generators configuration as its argument.
@@ -223,15 +212,10 @@ func Run(genConfig any) int {
 	if *instanceArg != "" {
 		vmiConfig.Instance = *instanceArg
 	}
-	if *loggerLevelArg != "" {
-		vmiConfig.LoggerConfig.Level = *loggerLevelArg
-	}
-	if *loggerFileArg != "" {
-		vmiConfig.LoggerConfig.LogFile = *loggerFileArg
-	}
 	if *httpPoolEndpointsArg != "" {
 		vmiConfig.HttpEndpointPoolConfig.OverrideEndpoints(*httpPoolEndpointsArg)
 	}
+	logrusx.ApplySetLoggerArgs(vmiConfig.LoggerConfig)
 
 	// Set the logger level and file:
 	err = SetLogger(vmiConfig.LoggerConfig)

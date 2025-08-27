@@ -37,6 +37,8 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/bgp59/logrusx"
 )
 
 const (
@@ -64,7 +66,7 @@ type VmiConfig struct {
 	ShutdownMaxWait time.Duration `yaml:"shutdown_max_wait"`
 
 	// Specific components configuration.
-	LoggerConfig           *LoggerConfig           `yaml:"log_config"`
+	LoggerConfig           *logrusx.LoggerConfig   `yaml:"log_config"`
 	CompressorPoolConfig   *CompressorPoolConfig   `yaml:"compressor_pool_config"`
 	HttpEndpointPoolConfig *HttpEndpointPoolConfig `yaml:"http_endpoint_pool_config"`
 	SchedulerConfig        *SchedulerConfig        `yaml:"scheduler_config"`
@@ -78,7 +80,7 @@ func DefaultVmiConfig() *VmiConfig {
 		Instance:               Instance,
 		UseShortHostname:       VMI_CONFIG_USE_SHORT_HOSTNAME_DEFAULT,
 		ShutdownMaxWait:        VMI_CONFIG_SHUTDOWN_MAX_WAIT_DEFAULT,
-		LoggerConfig:           DefaultLoggerConfig(),
+		LoggerConfig:           logrusx.DefaultLoggerConfig(),
 		CompressorPoolConfig:   DefaultCompressorPoolConfig(),
 		HttpEndpointPoolConfig: DefaultHttpEndpointPoolConfig(),
 		SchedulerConfig:        DefaultSchedulerConfig(),

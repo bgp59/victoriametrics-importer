@@ -41,7 +41,7 @@ func buildTestHttpEndpointPool(tc *HttpEndpointPoolTestCase) (*HttpEndpointPool,
 }
 
 func testHttpEndpointPoolCreate(tc *HttpEndpointPoolTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, nil)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, nil)
 	defer tlc.RestoreLog()
 
 	epPool, err := buildTestHttpEndpointPool(tc)
@@ -65,7 +65,7 @@ func testHttpEndpointPoolCreate(tc *HttpEndpointPoolTestCase, t *testing.T) {
 }
 
 func testHttpEndpointPoolRotate(tc *HttpEndpointPoolTestCase, t *testing.T) {
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, logrus.DebugLevel)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, logrus.DebugLevel)
 	defer tlc.RestoreLog()
 
 	epPool, err := buildTestHttpEndpointPool(tc)
@@ -89,7 +89,7 @@ func testHttpEndpointPoolRotate(tc *HttpEndpointPoolTestCase, t *testing.T) {
 func testHttpEndpointPoolReportError(tc *HttpEndpointPoolTestCase, t *testing.T) {
 	testTimeout := 5 * time.Second
 
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, logrus.DebugLevel)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, logrus.DebugLevel)
 	defer tlc.RestoreLog()
 
 	epPool, err := buildTestHttpEndpointPool(tc)
@@ -146,7 +146,7 @@ func testHttpEndpointPoolReportError(tc *HttpEndpointPoolTestCase, t *testing.T)
 func testHttpEndpointPoolSendBuf(tc *HttpEndpointPoolTestCase, t *testing.T) {
 	testTimeout := 5 * time.Second
 
-	tlc := vmi_testutils.NewTestLogCollect(t, RootLogger, logrus.DebugLevel)
+	tlc := vmi_testutils.NewTestCollectableLogger(t, RootLogger, logrus.DebugLevel)
 	defer tlc.RestoreLog()
 
 	epPool, err := buildTestHttpEndpointPool(tc)
