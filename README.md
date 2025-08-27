@@ -337,13 +337,18 @@ The [vmi](vmi) framework implements the following command line args:
      setting
   -instance string
      Override the "vmi_config.instance" config setting
+  -log-disable-src-file
+     Disable the reporting of the source file:line# info
   -log-file string
-     Override the config "vmi_config.log_config.log_file"
-     config setting
+     Log to a file or use stdout/stderr
+  -log-file-max-backup-num int
+     How many older log files to keep upon rotation (default 1)
+  -log-file-max-size-mb int
+     Log file max size, in MB, before rotation, use 0 to disable (default 10)
   -log-level string
-     Override the "vmi_config.log_config.log_level" config
-     setting, it should be one of the ["panic" "fatal" "error"
-     "warning" "info" "debug" "trace"] values
+     Log level name, one of [panic fatal error warning info debug trace] (default "info")
+  -log-use-json
+     Structure the logged record in JSON (default true)
   -use-stdout-metrics-queue
      Print metrics to stdout instead of sending to import
      endpoints
