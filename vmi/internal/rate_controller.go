@@ -28,6 +28,7 @@ import (
 const (
 	CREDIT_NO_LIMIT    = 0
 	CREDIT_EXACT_MATCH = 0
+	CREDIT_UNLIMITED   = -1
 )
 
 // Define an interface for testing:
@@ -42,7 +43,7 @@ type Credit struct {
 	wg             *sync.WaitGroup
 	cond           *sync.Cond
 	current        int
-	max            int
+	maxValue       int
 	replenishValue int
 	replenishInt   time.Duration
 }
@@ -87,19 +88,19 @@ func ParseCreditRateSpec(spec string) (int, time.Duration, error) {
 	return replenishValue, replenishInt, nil
 }
 
-func NewCredit(replenishValue, max int, replenishInt time.Duration) *Credit {
-	if max != CREDIT_NO_LIMIT && max < replenishValue {
-		max = replenishValue
-	}
+func NewCredit(replenishValue, maxValue int, replenishInt time.Duration) *Credit {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
+	if maxValue > 0 {
+		maxValue = max(replenishValue, maxValue)
+	}
 
 	c := &Credit{
 		ctx:            ctx,
 		cancelFunc:     cancelFunc,
 		wg:             &sync.WaitGroup{},
 		cond:           sync.NewCond(&sync.Mutex{}),
-		max:            max,
+		maxValue:       maxValue,
 		replenishValue: replenishValue,
 		replenishInt:   replenishInt,
 	}
@@ -116,31 +117,30 @@ func NewCreditFromSpec(spec string) (*Credit, error) {
 }
 
 func (c *Credit) startReplenish() {
-	replenishInt := c.replenishInt
-	nextReplenishTime := time.Now().Add(replenishInt)
+	c.wg.Add(1)
+	ticker := time.NewTicker(c.replenishInt)
+	c.cond.L.Lock()
 	c.current = c.replenishValue
-	ctx, wg := c.ctx, c.wg
-	wg.Add(1)
+	c.cond.Broadcast()
+	c.cond.L.Unlock()
 	go func() {
-		for {
+		defer c.wg.Done()
+		for run := true; run; {
 			select {
-			case <-ctx.Done():
-				wg.Done()
-				return
-			default:
-				pause := time.Until(nextReplenishTime)
-				if pause > 0 {
-					time.Sleep(pause)
-				}
-				nextReplenishTime = nextReplenishTime.Add(replenishInt)
+			case <-c.ctx.Done():
+				ticker.Stop()
+				c.cond.L.Lock()
+				c.current = CREDIT_UNLIMITED
+				run = false
+			case <-ticker.C:
 				c.cond.L.Lock()
 				c.current += c.replenishValue
-				if c.max != CREDIT_NO_LIMIT && c.current > c.max {
-					c.current = c.max
+				if c.maxValue > 0 && c.current > c.maxValue {
+					c.current = c.maxValue
 				}
-				c.cond.Broadcast()
-				c.cond.L.Unlock()
 			}
+			c.cond.Broadcast()
+			c.cond.L.Unlock()
 		}
 	}()
 }
@@ -155,24 +155,23 @@ func (c *Credit) StopReplenishWait() {
 }
 
 func (c *Credit) GetCredit(desired, minAcceptable int) (got int) {
-	if minAcceptable == CREDIT_EXACT_MATCH ||
-		minAcceptable > desired {
+	if minAcceptable < 0 || minAcceptable > desired {
 		minAcceptable = desired
 	}
 
 	c.cond.L.Lock()
 	defer c.cond.L.Unlock()
 
-	for c.current < minAcceptable {
+	for c.current >= 0 && c.current < minAcceptable {
 		c.cond.Wait()
 	}
 
-	if c.current >= desired {
+	if c.current < 0 {
 		got = desired
 	} else {
-		got = c.current
+		got = min(desired, c.current)
+		c.current -= got
 	}
-	c.current -= got
 	return
 }
 
@@ -182,7 +181,7 @@ func (c *Credit) String() string {
 	}
 	return fmt.Sprintf(
 		"%T{replenishValue=%d, replenishInt=%s, max=%d}",
-		c, c.replenishValue, c.replenishInt, c.max,
+		c, c.replenishValue, c.replenishInt, c.maxValue,
 	)
 }
 

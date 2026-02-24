@@ -276,6 +276,31 @@ func TestCredit(t *testing.T) {
 	}
 }
 
+func TestCreditStop(t *testing.T) {
+	replenishValue := 100
+	wantCreditAfterStop := 100 * replenishValue
+	timeout := 100 * time.Millisecond
+	replenishInt := 10 * timeout
+
+	creditVal := make(chan int)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	go func() {
+		credit := NewCredit(replenishValue, replenishValue, replenishInt)
+		credit.StopReplenishWait()
+		creditVal <- credit.GetCredit(wantCreditAfterStop, CREDIT_EXACT_MATCH)
+	}()
+
+	select {
+	case gotCreditAfterStop := <-creditVal:
+		if wantCreditAfterStop != gotCreditAfterStop {
+			t.Fatalf("Credit after stop: want: %d, got: %d", wantCreditAfterStop, gotCreditAfterStop)
+		}
+	case <-ctx.Done():
+		t.Fatalf("Timeout after %s", timeout)
+	}
+}
+
 func testParseCreditRateSpec(tc *ParseCreditRateSpecTestCase, t *testing.T) {
 	gotReplenishValue, gotReplenishInt, gotErr := ParseCreditRateSpec(tc.spec)
 	if gotErr != nil && tc.wantError == nil ||

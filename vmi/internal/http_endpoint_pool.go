@@ -566,12 +566,21 @@ func (epPool *HttpEndpointPool) HealthCheck(ep *HttpEndpoint) {
 	epPoolLog.Warnf("start health check for %s", ep.url)
 
 	stats, mu, url := epPool.stats, epPool.mu, ep.url
-	req := &http.Request{
-		Method: http.MethodPut,
-		URL:    ep.URL,
-		Header: http.Header{},
+	req, err := http.NewRequestWithContext(
+		epPool.ctx,
+		http.MethodPut,
+		ep.url,
+		nil,
+	)
+	if err != nil {
+		epPoolLog.Warnf("health check req for %s: %v (disabled permanently)", ep.url, err)
+		return
 	}
 	req.Header.Add("Content-Type", "text/html")
+	if epPool.authorization != "" {
+		req.Header.Add("Authorization", epPool.authorization)
+	}
+
 	checkTime := time.Now().Add(epPool.healthCheckInterval)
 	timer := time.NewTimer(time.Until(checkTime))
 	repeatCount := 0
@@ -784,11 +793,13 @@ func (epPool *HttpEndpointPool) SendBuffer(b []byte, timeout time.Duration, gzip
 		header.Add("Authorization", epPool.authorization)
 	}
 
+	epPool.mu.Lock()
 	if epPool.credit != nil {
 		body = NewCreditReader(epPool.credit, 128, b)
 	} else {
 		body = NewBytesReadSeekCloser(b)
 	}
+	epPool.mu.Unlock()
 
 	if timeout < 0 {
 		timeout = epPool.sendBufferTimeout
@@ -876,7 +887,10 @@ func (epPool *HttpEndpointPool) Shutdown() {
 	epPool.wg.Wait()
 	epPoolLog.Info("all health check goroutines completed")
 	if credit, ok := epPool.credit.(*Credit); ok {
+		epPool.mu.Lock()
 		credit.StopReplenishWait()
+		epPool.credit = nil
+		epPool.mu.Unlock()
 	}
 	epPoolLog.Info("pool shutdown complete")
 }

@@ -271,8 +271,8 @@ func Run(genConfig any) int {
 		MetricsQueue = compressorPool
 
 		compressorPool.Start(httpEndpointPool)
-		defer httpEndpointPool.Shutdown() // may timeout if all endpoints are down
 		defer compressorPool.Shutdown()
+		defer httpEndpointPool.Shutdown()
 	} else {
 		// Simulated queue w/ metrics displayed to stdout:
 		MetricsQueue, err = NewStdoutMetricsQueue(vmiConfig.CompressorPoolConfig)
