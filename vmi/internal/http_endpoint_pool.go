@@ -547,6 +547,8 @@ func NewHttpEndpointPool(poolCfg *HttpEndpointPoolConfig) (*HttpEndpointPool, er
 }
 
 func (epPool *HttpEndpointPool) HealthCheck(ep *HttpEndpoint) {
+	defer epPool.wg.Done()
+
 	var (
 		prevErr        error
 		prevStatusCode int       = -1
@@ -558,42 +560,47 @@ func (epPool *HttpEndpointPool) HealthCheck(ep *HttpEndpoint) {
 			err1 != nil && err2 != nil && err1.Error() == err2.Error()
 	}
 
-	sameStatus := func(preStatusCode int, resp *http.Response) bool {
-		return resp == nil && preStatusCode == -1 ||
-			resp != nil && preStatusCode == resp.StatusCode
+	sameStatus := func(prevStatusCode int, resp *http.Response) bool {
+		return resp == nil && prevStatusCode == -1 ||
+			resp != nil && prevStatusCode == resp.StatusCode
 	}
 
 	epPoolLog.Warnf("start health check for %s", ep.url)
 
 	stats, mu, url := epPool.stats, epPool.mu, ep.url
-	req := &http.Request{
-		Method: http.MethodPut,
-		URL:    ep.URL,
-		Header: http.Header{},
+	req, err := http.NewRequestWithContext(
+		epPool.ctx,
+		http.MethodPut,
+		ep.url,
+		nil,
+	)
+	if err != nil {
+		epPoolLog.Warnf("health check req for %s: %v (disabled permanently)", ep.url, err)
+		return
 	}
 	req.Header.Add("Content-Type", "text/html")
-	checkTime := time.Now().Add(epPool.healthCheckInterval)
-	timer := time.NewTimer(time.Until(checkTime))
-	repeatCount := 0
-	for done := false; !done; {
+	if epPool.authorization != "" {
+		req.Header.Add("Authorization", epPool.authorization)
+	}
+
+	ticker := time.NewTicker(epPool.healthCheckInterval)
+	defer ticker.Stop()
+
+	for repeatCount, healthy := 0, false; !healthy; {
 		select {
 		case <-epPool.ctx.Done():
 			epPoolLog.Warnf("cancel health check for %s", ep.url)
-			if !timer.Stop() {
-				<-timer.C
-			}
-			done = true
-		case <-timer.C:
+			return
+		case <-ticker.C:
 			res, err := epPool.client.Do(req)
 			if res != nil && res.Body != nil {
 				res.Body.Close()
 			}
-			if err == nil && res != nil && HttpEndpointPoolSuccessCodes[res.StatusCode] {
+			healthy = err == nil && res != nil && HttpEndpointPoolSuccessCodes[res.StatusCode]
+			if healthy {
 				epPoolLog.Infof("%s %q: %s", req.Method, req.URL, res.Status)
-				done = true
+				epPool.MoveToHealthy(ep)
 			} else {
-				checkTime = checkTime.Add(epPool.healthCheckInterval)
-				timer.Reset(time.Until(checkTime))
 				if !sameErr(err, prevErr) || !sameStatus(prevStatusCode, res) {
 					repeatCount = 1
 				} else {
@@ -621,14 +628,12 @@ func (epPool *HttpEndpointPool) HealthCheck(ep *HttpEndpoint) {
 			}
 			mu.Lock()
 			stats.EndpointStats[url][HTTP_ENDPOINT_STATS_HEALTH_CHECK_COUNT] += 1
-			if !done {
+			if !healthy {
 				stats.EndpointStats[url][HTTP_ENDPOINT_STATS_HEALTH_CHECK_ERROR_COUNT] += 1
 			}
 			mu.Unlock()
 		}
 	}
-	epPool.MoveToHealthy(ep)
-	epPool.wg.Done()
 }
 
 func (epPool *HttpEndpointPool) ReportError(ep *HttpEndpoint) {
@@ -660,10 +665,12 @@ func (epPool *HttpEndpointPool) ReportError(ep *HttpEndpoint) {
 	} else {
 		// Initiate health check:
 		epPool.healthy.Remove(ep)
-		epPoolLog.Warnf("%s moved to health check", ep.url)
 		ep.healthy = false
-		epPool.wg.Add(1)
-		go epPool.HealthCheck(ep)
+		if !epPool.shutdown {
+			epPoolLog.Warnf("%s moved to health check", ep.url)
+			epPool.wg.Add(1)
+			go epPool.HealthCheck(ep)
+		}
 	}
 
 	head := epPool.healthy.head
@@ -700,69 +707,62 @@ func (epPool *HttpEndpointPool) MoveToHealthy(ep *HttpEndpoint) {
 // Get the current healthy endpoint or nil if none available after max wait; if
 // maxWait < 0 then the pool healthyMaxWait is used:
 func (epPool *HttpEndpointPool) GetCurrentHealthy(maxWait time.Duration) *HttpEndpoint {
-	var ep *HttpEndpoint
-	epPool.mu.Lock()
-	defer epPool.mu.Unlock()
-
-	// If the pool was shutdown then no endpoint is usable:
-	if epPool.shutdown {
-		return nil
-	}
-
-	// There is no sync.Condition Wait with timeout, so poll until deadline,
-	// waiting for a healthy endpoint. It shouldn't impact the overall
-	// efficiency since this is not the normal operating condition.
 	if maxWait < 0 {
 		maxWait = epPool.healthyMaxWait
 	}
+
+	epPool.mu.Lock()
+	defer epPool.mu.Unlock()
+
+	// There is no sync.Condition Wait with timeout, so poll until deadline or
+	// shutdown, waiting for a healthy endpoint. It shouldn't impact the overall
+	// efficiency since this is not the normal operating condition.
 	deadline := time.Now().Add(maxWait)
-	for epPool.healthy.head == nil {
+	for epPool.healthy.head == nil && !epPool.shutdown {
 		timeLeft := time.Until(deadline)
 		if timeLeft <= 0 {
 			return nil
 		}
 		epPool.mu.Unlock()
-		pause := epPool.healthyPollInterval
-		if pause > timeLeft {
-			pause = timeLeft
-		}
-		time.Sleep(pause)
+		time.Sleep(min(epPool.healthyPollInterval, timeLeft))
 		epPool.mu.Lock()
 	}
-	ep = epPool.healthy.head
-	// Rotate as needed:
-	if epPool.firstUse {
-		epPool.healthyHeadChangeTs = time.Now()
-		epPool.firstUse = false
-	} else if epPool.healthyRotateInterval == 0 ||
-		epPool.healthyRotateInterval > 0 &&
-			time.Since(epPool.healthyHeadChangeTs) >= epPool.healthyRotateInterval {
-		if epPool.healthy.head != epPool.healthy.tail {
-			epPool.healthy.Remove(ep)
-			epPool.healthy.AddToTail(ep)
-			if RootLogger.IsEnabledForDebug {
-				epPoolLog.Debugf(
-					"%s: error#: %d, threshold: %d rotated to healthy list tail",
-					ep.url, ep.numErrors, ep.markUnhealthyThreshold,
-				)
-			}
-			ep = epPool.healthy.head
+	ep := epPool.healthy.head
+	if ep != nil {
+		// Rotate as needed:
+		if epPool.firstUse {
 			epPool.healthyHeadChangeTs = time.Now()
-			if RootLogger.IsEnabledForDebug {
-				epPoolLog.Debugf(
-					"%s: error#: %d, threshold: %d rotated to healthy list head",
-					ep.url, ep.numErrors, ep.markUnhealthyThreshold,
-				)
+			epPool.firstUse = false
+		} else if epPool.healthyRotateInterval == 0 ||
+			epPool.healthyRotateInterval > 0 &&
+				time.Since(epPool.healthyHeadChangeTs) >= epPool.healthyRotateInterval {
+			if epPool.healthy.head != epPool.healthy.tail {
+				epPool.healthy.Remove(ep)
+				epPool.healthy.AddToTail(ep)
+				if RootLogger.IsEnabledForDebug {
+					epPoolLog.Debugf(
+						"%s: error#: %d, threshold: %d rotated to healthy list tail",
+						ep.url, ep.numErrors, ep.markUnhealthyThreshold,
+					)
+				}
+				ep = epPool.healthy.head
+				epPool.healthyHeadChangeTs = time.Now()
+				if RootLogger.IsEnabledForDebug {
+					epPoolLog.Debugf(
+						"%s: error#: %d, threshold: %d rotated to healthy list head",
+						ep.url, ep.numErrors, ep.markUnhealthyThreshold,
+					)
+				}
+				epPool.stats.PoolStats[HTTP_ENDPOINT_POOL_STATS_HEALTHY_ROTATE_COUNT] += 1
 			}
-			epPool.stats.PoolStats[HTTP_ENDPOINT_POOL_STATS_HEALTHY_ROTATE_COUNT] += 1
 		}
-	}
-	// Apply error reset as needed:
-	if ep.numErrors > 0 &&
-		epPool.errorResetInterval > 0 &&
-		time.Since(ep.errorTs) >= epPool.errorResetInterval {
-		epPoolLog.Infof("%s: error#: %d->0)", ep.url, ep.numErrors)
-		ep.numErrors = 0
+		// Apply error reset as needed:
+		if ep.numErrors > 0 &&
+			epPool.errorResetInterval > 0 &&
+			time.Since(ep.errorTs) >= epPool.errorResetInterval {
+			epPoolLog.Infof("%s: error#: %d->0)", ep.url, ep.numErrors)
+			ep.numErrors = 0
+		}
 	}
 	return ep
 }
@@ -784,11 +784,13 @@ func (epPool *HttpEndpointPool) SendBuffer(b []byte, timeout time.Duration, gzip
 		header.Add("Authorization", epPool.authorization)
 	}
 
+	mu.Lock()
 	if epPool.credit != nil {
 		body = NewCreditReader(epPool.credit, 128, b)
 	} else {
 		body = NewBytesReadSeekCloser(b)
 	}
+	mu.Unlock()
 
 	if timeout < 0 {
 		timeout = epPool.sendBufferTimeout
@@ -876,7 +878,10 @@ func (epPool *HttpEndpointPool) Shutdown() {
 	epPool.wg.Wait()
 	epPoolLog.Info("all health check goroutines completed")
 	if credit, ok := epPool.credit.(*Credit); ok {
+		epPool.mu.Lock()
 		credit.StopReplenishWait()
+		epPool.credit = nil
+		epPool.mu.Unlock()
 	}
 	epPoolLog.Info("pool shutdown complete")
 }

@@ -102,7 +102,7 @@ func testHttpEndpointPoolReportError(tc *HttpEndpointPoolTestCase, t *testing.T)
 	epPool.healthyRotateInterval = 0
 	// Ensure that the health check will proceed right away, since it is paced
 	// by the ClientDoer mock:
-	epPool.healthCheckInterval = 0
+	epPool.healthCheckInterval = 1 * time.Nanosecond // time.Ticker requires > 0
 
 	mock := vmi_testutils.NewHttpClientDoerMock(testTimeout)
 	defer mock.Cancel()
@@ -159,7 +159,7 @@ func testHttpEndpointPoolSendBuf(tc *HttpEndpointPoolTestCase, t *testing.T) {
 	epPool.healthyRotateInterval = -1
 	// Ensure that the health check will proceed right away, since it is paced
 	// by the ClientDoer mock:
-	epPool.healthCheckInterval = 0
+	epPool.healthCheckInterval = 1 * time.Nanosecond // time.Ticker requires > 0
 
 	mock := vmi_testutils.NewHttpClientDoerMock(testTimeout)
 	defer mock.Cancel()
