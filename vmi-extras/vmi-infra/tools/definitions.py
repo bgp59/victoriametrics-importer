@@ -1,0 +1,8 @@
+default_grafana_root_url = "http://localhost:3000"
+default_grafana_user = "admin"
+default_grafana_password = "veeemeye"
+ref_dashboard_title_suffix = " (Ref)"
+wip_folder_title = "WIP"
+wip_dashboard_title_suffix = " (WIP)"
+default_out_subdir = "dashboards"
+default_folder = "VMI Reference"

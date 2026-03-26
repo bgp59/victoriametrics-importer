@@ -1,1 +1,0 @@
-start-victoria-metrics.sh

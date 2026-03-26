@@ -16,7 +16,7 @@
 
 This is a collection of tools that may help with the development of specific VictoriaMetrics importers.
 
-It is lumped with the main VMI module/framework for convenience purpose, but they are independent. Hence a separate versioning, [semver.txt](semver.txt), and tagging, `vmi-extras-vX.Y.Z`, for it.
+It is lumped with the main VMI module/framework for convenience purpose, but they are independent. Hence a separate versioning, [semver.txt](semver.txt), and tagging, `vmi-extras-X.Y.Z`, for it.
 
 It can be downloaded from [releases](https://github.com/bgp59/victoriametrics-importer/releases) and normally it should be extracted under the importer's root. If it is extracted elsewhere then `vmi-extras/project-root` symlink should be re-pointed to project's location. This will ensure that the project directory is mounted as a volume by docker containers, allowing it to run code.
 
@@ -46,7 +46,7 @@ pyfmt [DIR ...]
 
 ### VMI Infrastructure
 
-[vmi-infra](vmi-infra) contains the scripts and files needed to install and run a [Single-node version](https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/#) of [VictoriaMetrics](https://docs.victoriametrics.com/) and [Grafana](https://grafana.com/docs/grafana/latest/setup-grafana/?src=ggl-s&mdm=cpc&cnt=99878325494&camp=b-grafana-exac-amer&trm=grafana).
+[vmi-infra](vmi-infra) contains the scripts and files needed to install and run a [Single-node version](https://docs.victoriametrics.com/victoriametrics/single-server-victoriametrics/#) of [VictoriaMetrics](https://docs.victoriametrics.com/) and [Grafana](https://grafana.com/docs/grafana/latest).
 
 #### Running On A Local Host
 
@@ -55,31 +55,48 @@ pyfmt [DIR ...]
 - install:
 
     ```bash
-    cd vmi-extras/vmi-infra
+    cd vmi-extras/vmi-infra/install
     ./install-vmi-infra.sh -h
     ```
 
     ```text
-    Usage: install-vmi-infra.sh [-r ROOT_DIR] [-R RUNTIME_DIR]
+    Usage: install-vmi-infra.sh [-b] [-r ROOT_DIR] [-R RUNTIME_DIR]
 
-    Install VictoriaMetrics & Grafana under ROOT_DIR, default: /Users/emy/vmi-infra,
-    using RUNTIME_DIR as runtime dir, default: ROOT_DIR/runtime.
+    Install VictoriaMetrics and Grafana under ROOT_DIR using RUNTIME_DIR 
+    for runtime dir.
 
+    Default ROOT_DIR is $VMI_INFRA_ROOT or $HOME/vmi-infra if the latter is 
+    not set.
+
+    Default RUNTIME_DIR is $VMI_INFRA_RUNTIME if VMI_INFRA_RUNTIME is defined, 
+    otherwise it will use ROOT_DIR.
+
+    The -b/--base-only flag is reserved for Docker image build, since it will
+    only install the packages without applying the customization. This is in
+    order to separate the one-off install from updates into 2 container layers
+    to speed up rebuilds when the custom part changes (e.g. do not redownload
+    Grafana because a provisioned dashboard has changed).
     ```
 
 - start / stop:
 
     ```bash
-    cd ~/vmi-infra
+    cd ~/vmi-infra/scripts
     ./start-vmi-infra.sh
     ./stop-vmi-infra.sh
     ```
 
-VictoriaMetrics importer endpoint is `http://HOSTNAME:8428/api/v1/import/prometheus` and Grafana can be accessed at  `http://HOSTNAME:3000`. The Grafana credentials are `admin`/`vmi`
+Infra Endpoints
+
+| Endpoint | Role | Auth | Obs |
+| -------- | ---- | ---- | --- |
+| `http://HOSTNAME:8428/api/v1/import/prometheus` | Import for Prometheus Exposition Format | None | |
+| `https://HOSTNAME:18428/api/v1/import/prometheus` | Import for Prometheus Exposition Format | None | Self-signed TLS certificate |
+| `http://HOSTNAME:8429/api/v1/import/prometheus` | Import for Prometheus Exposition Format | `vmi:veeemeye` | |
+| `https://HOSTNAME:18429/api/v1/import/prometheus` | Import for Prometheus Exposition Format | `vmi:veeemeye` | Self-signed TLS certificate |
+| `http://HOSTNAME:3000` | Grafana UI | `admin:veeemeye` | |
 
 #### Running On A Docker Container
-
-VMI was developed on an MacBook Air M3 running MacOS 15.5.
 
 - build the image
 
@@ -106,8 +123,7 @@ VMI was developed on an MacBook Air M3 running MacOS 15.5.
     ```
 
     ```bash
-    # Now on container the project dir is available 
-    # under /volumes:
+    # Now on container the project dir is available under /volumes:
     cd /volumes/victoriametrics-importer/reference
     ./run-refvmi.sh
     ```
@@ -118,7 +134,7 @@ VMI was developed on an MacBook Air M3 running MacOS 15.5.
 
 #### vmi-base
 
-Generic multi-platform (`linux/amd64` and `linux/arm64`) based on Ubuntu 20.04. A git ignored `volumes` directory will be created at runtime by [pre-start-host-command](vmi-base/pre-start-host-command) hook and it will be mounted as follows on the container:
+Generic multi-platform (`linux/amd64` and `linux/arm64`) based on Ubuntu 24.04. A git ignored `volumes` directory will be created at runtime by [pre-start-host-command](vmi-base/pre-start-host-command) hook and it will be mounted as follows on the container:
 
 | Host Path | Container Path | Obs |
 |      ---- | ---            | --- |
@@ -127,13 +143,20 @@ Generic multi-platform (`linux/amd64` and `linux/arm64`) based on Ubuntu 20.04. 
 
 #### vmi-infra
 
-multi-platform (`linux/amd64` and `linux/arm64`) based on [vmi-base](#vmi-base), configured to start VictoriaMetrics and Grafana with the respective ports exposed to the host. See [Running On A Docker Container](#running-on-a-docker-container) for details.
+Multi-platform (`linux/amd64` and `linux/arm64`) based on [vmi-base](#vmi-base), configured to start VictoriaMetrics and Grafana with the respective ports exposed to the host. See [Running On A Docker Container](#running-on-a-docker-container) for details.
 
 It has the same volumes as [vmi-base](#vmi-base). Both VictoriaMetrics and Grafana have their respective state persisted between container restarts because they are stored under `volumes/PLATFORM/runtime` on the host. To make a fresh start remove the relevant runtime sub-directory **before** starting the container.
 
 ### Grafana Support
 
-Grafana setup contains [provisioned dashboards](https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards), stored under [vmi-infra/files/update/grafana/dashboards](vmi-infra/files/update/grafana/dashboards). Included there is `internal-metrics-ref`, a reference dashboard for VMI [Internal Metrics](../docs/internal_metrics.md).
+Grafana setup contains [provisioned dashboards](https://grafana.com/docs/grafana/latest/administration/provisioning/#dashboards), stored under [vmi-infra/update/grafana/conf/provisioning/dashboards](vmi-infra/update/grafana/conf/provisioning/dashboards):
+
+| Folder | Dashboard Title | Obs |
+| ------ | --------------- | --- |
+| `Victoria Metrics` | `VictoriaMetrics - single-node` | Official dashboard from Victoria Metrics |
+| `Victoria Metrics` | `VictoriaMetrics - vmagent` | Official dashboard from Victoria Metrics |
+| `VMI Reference` | `Internal Metrics (Ref)` | Internal metrics reference |
+| `VMI Reference` | `RefVMI (Ref)` | Metrics from the reference generators:<br>`gauge`, `counter`, `categorical` |
 
 When developing actual importers, it is a good practice to create provisioned reference dashboards illustrating the available metrics. Such dashboards should be included in Demo/PoC Docker images, the latter based on [vmi-infra](#vmi-infra).
 
@@ -142,58 +165,63 @@ However such dashboards cannot be edited in place, first a copy should be made a
 The following Python tools can help w/ the above:
 
 ```bash
-cd vmi-extras/grafana
-./prepare-grafana-wip-dashboard.py -h
+cd vmi-extras/vmi-infra/tools
 ```
 
 ```text
+./prepare-grafana-wip-dashboard.py -h
 usage: prepare-grafana-wip-dashboard.py [-h] [-r ROOT_URL] [-u USER]
                                         [-p PASSWORD]
                                         DASHBOARD_TITLE
 
+All VMI reference dashboards are provisioned so they cannot be changed in place.
+This script will make an editable copy under the work-in-progress folder.
+
 positional arguments:
   DASHBOARD_TITLE
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -r ROOT_URL, --root-url ROOT_URL
                         Grafana root URL, default: 'http://localhost:3000'.
   -u USER, --user USER  Grafana user, default: 'admin'.
   -p PASSWORD, --password PASSWORD
-                        Grafana password, default: 'vmi'.
+                        Grafana password, default: 'veeemeye'.
 ```
 
 ```bash
-cd vmi-extras/grafana
+cd vmi-extras/vmi-infra/tools
 ./save-grafana-wip-dashboard.py -h
 ```
 
 ```text
-usage: save-grafana-wip-dashboard.py [-h] [-r ROOT_URL] [-u USER]
-                                     [-p PASSWORD] [-f FOLDER] [-k KEEP]
-                                     [-t TITLE] [-o OUT_DIR]
-                                     DASHBOARD_TITLE
+usage: save-grafana-wip-dashboard.py [-h] [-r ROOT_URL] [-u USER] [-p PASSWORD]
+                                     [-f FOLDER] [-k KEEP] [-t TITLE]
+                                     [-o OUT_DIR]
+                                     WIP_DASHBOARD_TITLE
+
+Save work-in-progress dashboard into the provisioned area.
 
 positional arguments:
-  DASHBOARD_TITLE       The reference or WIP title. The ' (WIP)' suffix will
-                        be appended as needed.
+  WIP_DASHBOARD_TITLE   The reference or WIP title. The ' (WIP)' suffix will be
+                        appended as needed.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -r ROOT_URL, --root-url ROOT_URL
                         Grafana root URL, default: 'http://localhost:3000'.
   -u USER, --user USER  Grafana user, default: 'admin'.
   -p PASSWORD, --password PASSWORD
-                        Grafana password, default: 'vmi'.
+                        Grafana password, default: 'veeemeye'.
   -f FOLDER, --folder FOLDER
-                        Grafana folder, default: 'vmi-reference'.
+                        Grafana folder, default: 'VMI Reference'.
   -k KEEP, --keep KEEP  Keep Instance and Hostname var selection. By default
                         they are either cleared or set to All if the latter is
                         enabled.
   -t TITLE, --title TITLE
-                        New title, if not provided it will be inferred from
-                        WIP_DASHBOARD_TITLE with ' (WIP)' suffix removed and
-                        '-ref' suffix appended as needed.
+                        Saved dashboard title, if not provided it will be
+                        inferred from WIP_DASHBOARD_TITLE with ' (WIP)' suffix
+                        removed and ' (Ref)' suffix appended as needed.
   -o OUT_DIR, --out-dir OUT_DIR
                         Output dir, default is the location of this
                         script/dashboards

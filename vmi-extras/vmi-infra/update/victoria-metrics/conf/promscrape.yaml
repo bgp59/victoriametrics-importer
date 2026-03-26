@@ -1,0 +1,8 @@
+scrape_configs:
+- job_name: 'vmagent'
+  scrape_interval: 5s
+  basic_auth:
+    username: vmi
+    password_file: auth/password
+  static_configs:
+    - targets: ['localhost:8429']
