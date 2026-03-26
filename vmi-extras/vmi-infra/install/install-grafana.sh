@@ -5,12 +5,6 @@ grafana_ver=12.4.0_22325204712
 grafana_semver=${grafana_ver%_*}
 
 this_script=${0##*/}
-case "$0" in
-    /*|*/*) this_dir=$(realpath $(dirname $0));;
-    *) this_dir=$(realpath $(dirname $(which $0)));;
-esac
-
-. $this_dir/common.sh
 
 usage="
 Usage: $this_script [-b] [-r ROOT_DIR] [-R RUNTIME_DIR]
@@ -31,6 +25,14 @@ if VMI_INFRA_RUNTIME is defined, otherwise it will
 use ROOT_DIR.
 "
 
+set -e
+case "$0" in
+    /*|*/*) this_dir=$(realpath $(dirname $0));;
+    *) this_dir=$(realpath $(dirname $(which $0)));;
+esac
+
+. $this_dir/common.sh
+
 base_only=
 root_dir=$vmi_infra_root/grafana
 if [[ -n "$VMI_INFRA_RUNTIME" ]]; then
@@ -49,17 +51,16 @@ while [[ $# -gt 0 ]]; do
             ;;
         -r|--root*)
             shift
-            root_dir="$1"
+            root_dir=$1
             ;;
         -R|--runtime*)
             shift
-            runtime_dir="$1"
+            runtime_dir=$1
             ;;
     esac
     shift
 done
 
-set -e
 check_os_arch
 
 if [[ "$grafana_ver" == *_* ]]; then
@@ -84,10 +85,11 @@ download_subdir=grafana-$grafana_semver
     ln -fs ../$download_subdir/conf/defaults.ini conf
 )
 
+
 make_runtime_dirs "$root_dir" "$runtime_dir" data out log
 
 if [[ -z "$base_only" ]]; then
-    update_dir=$(realpath $this_dir/../grafana/update)
+    update_dir=$(realpath $this_dir/../update/grafana)
     (
         set -x
         rsync -plrtHS $update_dir/ $root_dir

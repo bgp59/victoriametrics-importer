@@ -39,6 +39,21 @@ kill_wait_proc() {
     return 1
 }
 
+make_dir_follow_link() {
+    (
+        set +ex
+        for d in $*; do
+            set +e
+            to=$(readlink $d)
+            if [[ "$to" != "" && ! -d "$to" ]]; then
+                (set -ex; mkdir -p $to)
+            elif [[ ! -d $d ]]; then
+                (set -ex; mkdir -p $d)
+            fi || return 1
+        done
+    )
+}
+
 case "$this_script" in
     start-victoria-metrics*)
         set -e
@@ -48,7 +63,7 @@ case "$this_script" in
         (
             set -x
             cd $root_dir
-            mkdir -p out
+            make_dir_follow_link data out
             setsid victoria-metrics \
                 -httpListenAddr=:8428,:18428 \
                 -tls=false,true \
@@ -68,7 +83,7 @@ case "$this_script" in
         (
             set -x
             cd $root_dir
-            mkdir -p out
+            make_dir_follow_link data out
             setsid vmagent \
                 -httpListenAddr=:8429,:18429 \
                 -tls=false,true \
@@ -79,6 +94,7 @@ case "$this_script" in
                 -remoteWrite.url=http://localhost:8428/api/v1/write \
                 -metrics.exposeMetadata \
                 -promscrape.config=conf/promscrape.yaml \
+                -remoteWrite.tmpDataPath=data/vmagent-remotewrite-data \
                 > out/vmagent.out 2>out/vmagent.err < /dev/null &
         )
     ;;

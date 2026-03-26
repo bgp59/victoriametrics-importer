@@ -78,19 +78,24 @@ vmi_config:
     # connection and the name to address resolution mechanism should no longer
     # resolve to this failed IP.
     endpoints:
+      # No auth:
       - url: http://localhost:8428/api/v1/import/prometheus
-        #mark_unhealthy_threshold: 1 # If not defined the pool default will be used
+      #- url: https://localhost:18428/api/v1/import/prometheus
+      # Auth:
+      #- url: http://localhost:8429/api/v1/import/prometheus
+      #- url: https://localhost:18429/api/v1/import/prometheus
+
 
     # The username to use for basic authentication, if any. If the value is empty,
     # no authentication is used.
-    username: ""
+    username: "vmi"
     # The password to use for basic authentication, if any. The value may start
     # with the following prefixes:
     #   file:PATH       env var expand PATH and read from that file 
     #   env:ENVVAR      expand ENVVAR 
     #   pass:PASSWORD   verbatim PASSWORD
     # All other values are used verbatim. file:PATH is the preferred format.
-    password: ""
+    password: "file:auth/password"
 
     # Pool default for unhealthy threshold:
     mark_unhealthy_threshold: 1
@@ -137,7 +142,7 @@ vmi_config:
     rate_limit_mbps:
 
     # Ignore TLS verification errors, e.g. self-signed certificates:
-    ignore_tls_verify: false
+    ignore_tls_verify: true
 
     # Parameters for https://pkg.go.dev/net#Dialer:
     # Timeout:

@@ -3,14 +3,7 @@
 # VictoriaMetrics version:
 vm_ver=1.138.0
 
-
 this_script=${0##*/}
-case "$0" in
-    /*|*/*) this_dir=$(realpath $(dirname $0));;
-    *) this_dir=$(realpath $(dirname $(which $0)));;
-esac
-
-. $this_dir/common.sh
 
 usage="
 Usage: $this_script [-b] [-r ROOT_DIR] [-R RUNTIME_DIR]
@@ -27,6 +20,14 @@ if VMI_INFRA_RUNTIME is defined, otherwise it will
 use ROOT_DIR.
 "
 
+set -e
+
+case "$0" in
+    /*|*/*) this_dir=$(realpath $(dirname $0));;
+    *) this_dir=$(realpath $(dirname $(which $0)));;
+esac
+
+. $this_dir/common.sh
 base_only=
 root_dir=$vmi_infra_root/victoria-metrics
 if [[ -n "$VMI_INFRA_RUNTIME" ]]; then
@@ -45,17 +46,15 @@ while [[ $# -gt 0 ]]; do
             ;;
         -r|--root*)
             shift
-            root_dir="$1"
+            root_dir=$1
             ;;
         -R|--runtime*)
             shift
-            runtime_dir="$1"
+            runtime_dir=$1
             ;;
     esac
     shift
 done
-
-set -e
 
 check_os_arch
 
@@ -77,7 +76,7 @@ download_url=https://github.com/VictoriaMetrics/VictoriaMetrics/releases/downloa
 make_runtime_dirs "$root_dir" "$runtime_dir" data out
 
 if [[ -z "$base_only" ]]; then
-    update_dir=$(realpath $this_dir/../victoria-metrics/update)
+    update_dir=$(realpath $this_dir/../update/victoria-metrics)
     (
         set -x
         rsync -plrtHS $update_dir/ $root_dir

@@ -73,6 +73,9 @@
                   "type": "auto"
                 },
                 "filterable": false,
+                "footer": {
+                  "reducers": []
+                },
                 "inspect": false,
                 "minWidth": 0
               },
@@ -81,7 +84,8 @@
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": 0
                   },
                   {
                     "color": "red",
@@ -259,20 +263,13 @@
           "id": 2,
           "interval": "5s",
           "options": {
-            "footer": {
-              "countRows": false,
-              "enablePagination": false,
-              "fields": "",
-              "reducer": [
-                "sum"
-              ],
-              "show": false
-            },
+            "cellHeight": "sm",
+            "enablePagination": false,
             "frameIndex": 2,
             "showHeader": true,
             "sortBy": []
           },
-          "pluginVersion": "9.4.7",
+          "pluginVersion": "12.4.0",
           "targets": [
             {
               "datasource": {
@@ -514,7 +511,7 @@
               "editorMode": "code",
               "expr": "vmi_task_scheduled_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -615,7 +612,7 @@
               "editorMode": "code",
               "expr": "vmi_task_executed_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -716,7 +713,7 @@
               "editorMode": "code",
               "expr": "vmi_task_avg_runtime_sec{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -790,7 +787,7 @@
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 28
+            "y": 68
           },
           "id": 8,
           "interval": "${interval}",
@@ -817,7 +814,7 @@
               "editorMode": "code",
               "expr": "vmi_task_delayed_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -891,7 +888,7 @@
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 28
+            "y": 68
           },
           "id": 9,
           "interval": "${interval}",
@@ -918,7 +915,7 @@
               "editorMode": "code",
               "expr": "vmi_task_overrun_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -992,7 +989,7 @@
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 28
+            "y": 68
           },
           "id": 60,
           "interval": "${interval}",
@@ -1019,7 +1016,7 @@
               "editorMode": "code",
               "expr": "vmi_task_next_ts_hack_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1107,7 +1104,7 @@
             "h": 8,
             "w": 7,
             "x": 0,
-            "y": 100
+            "y": 6
           },
           "id": 31,
           "interval": "5s",
@@ -1134,7 +1131,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_read_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "c{{compressor}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "c{{compressor}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1208,7 +1205,7 @@
             "h": 8,
             "w": 7,
             "x": 7,
-            "y": 100
+            "y": 6
           },
           "id": 32,
           "interval": "5s",
@@ -1235,7 +1232,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_read_byte_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "c{{compressor}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "c{{compressor}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1308,7 +1305,7 @@
             "h": 8,
             "w": 10,
             "x": 14,
-            "y": 100
+            "y": 6
           },
           "id": 27,
           "options": {
@@ -1334,7 +1331,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_compression_factor{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "c{{compressor}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "c{{compressor}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1408,7 +1405,7 @@
             "h": 8,
             "w": 7,
             "x": 0,
-            "y": 108
+            "y": 54
           },
           "id": 30,
           "interval": "5s",
@@ -1435,7 +1432,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_send_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "c{{compressor}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "c{{compressor}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1509,7 +1506,7 @@
             "h": 8,
             "w": 7,
             "x": 7,
-            "y": 108
+            "y": 54
           },
           "id": 36,
           "interval": "5s",
@@ -1536,7 +1533,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_send_byte_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "c{{compressor}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "c{{compressor}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1611,7 +1608,7 @@
             "h": 8,
             "w": 5,
             "x": 14,
-            "y": 108
+            "y": 54
           },
           "id": 33,
           "interval": "5s",
@@ -1638,7 +1635,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_tout_flush_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "c{{compressor}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "c{{compressor}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -1712,7 +1709,7 @@
             "h": 8,
             "w": 5,
             "x": 19,
-            "y": 108
+            "y": 54
           },
           "id": 35,
           "interval": "5s",
@@ -1739,7 +1736,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_send_error_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "send_err(c{{compressor}}/{{hostname}}/{{vmi_inst}})",
+              "legendFormat": "send_err(c{{compressor}}/host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             },
@@ -1751,7 +1748,7 @@
               "editorMode": "code",
               "expr": "vmi_compressor_write_error_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",compressor=~\"${compressor}\"}",
               "interval": "${interval}",
-              "legendFormat": "write_err(c{{compressor}}/{{hostname}}/{{vmi_inst}})",
+              "legendFormat": "write_err(c{{compressor}}/host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "B"
             }
@@ -1840,7 +1837,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 141
+            "y": 7
           },
           "id": 40,
           "interval": "${interval}",
@@ -1867,7 +1864,7 @@
               "editorMode": "code",
               "expr": "vmi_http_ep_send_buffer_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",url=~\"${ep_url}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{hostname}}/{{vmi_inst}}->{{url}}",
+              "legendFormat": "host={{hostname}},inst={{vmi_inst}}->{{url}}",
               "range": true,
               "refId": "A"
             }
@@ -1942,7 +1939,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 141
+            "y": 7
           },
           "id": 42,
           "options": {
@@ -1968,7 +1965,7 @@
               "editorMode": "code",
               "expr": "vmi_http_ep_send_buffer_byte_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",url=~\"${ep_url}\"} * 8 / on (vmi_inst, hostname) group_left vmi_metrics_gen_dtime_sec{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=\"internal_metrics\"} ",
               "interval": "${interval}",
-              "legendFormat": "{{hostname}}/{{vmi_inst}}->{{url}}",
+              "legendFormat": "host={{hostname}},inst={{vmi_inst}}->{{url}}",
               "range": true,
               "refId": "A"
             }
@@ -2043,7 +2040,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 141
+            "y": 7
           },
           "id": 45,
           "options": {
@@ -2069,7 +2066,7 @@
               "editorMode": "code",
               "expr": "vmi_http_ep_send_buffer_error_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",url=~\"${ep_url}\"}",
               "interval": "${interval}",
-              "legendFormat": "send_err({{hostname}}/{{vmi_inst}}->{{url}})",
+              "legendFormat": "send_err(host={{hostname}},inst={{vmi_inst}}->{{url}})",
               "range": true,
               "refId": "A"
             },
@@ -2081,7 +2078,7 @@
               "editorMode": "code",
               "expr": "vmi_http_ep_healthcheck_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",url=~\"${url}\"}",
               "interval": "${interval}",
-              "legendFormat": "healthchk({{hostname}}/{{vmi_inst}}->{{url}})",
+              "legendFormat": "healthchk(host={{hostname}},inst={{vmi_inst}}->{{url}})",
               "range": true,
               "refId": "B"
             },
@@ -2093,7 +2090,7 @@
               "editorMode": "code",
               "expr": "vmi_http_ep_healthcheck_error_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",url=~\"${url}\"}",
               "interval": "${interval}",
-              "legendFormat": "healthchk_err({{hostname}}/{{vmi_inst}}->{{url}})",
+              "legendFormat": "healthchk_err(host={{hostname}},inst={{vmi_inst}}->{{url}})",
               "range": true,
               "refId": "C"
             }
@@ -2181,7 +2178,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 150
+            "y": 8
           },
           "id": 11,
           "interval": "100ms",
@@ -2208,7 +2205,7 @@
               "editorMode": "code",
               "expr": "vmi_metrics_gen_dtime_sec{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -2282,7 +2279,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 150
+            "y": 8
           },
           "id": 48,
           "interval": "${interval}",
@@ -2309,7 +2306,7 @@
               "editorMode": "code",
               "expr": "vmi_metrics_gen_metrics_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -2383,7 +2380,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 150
+            "y": 8
           },
           "id": 61,
           "interval": "${interval}",
@@ -2410,7 +2407,7 @@
               "editorMode": "code",
               "expr": "vmi_metrics_gen_metrics_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}\n/ on(vmi_inst,hostname) group_left\nvmi_metrics_gen_dtime_sec{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=\"internal_metrics\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -2484,7 +2481,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 158
+            "y": 16
           },
           "id": 47,
           "interval": "${interval}",
@@ -2511,7 +2508,7 @@
               "editorMode": "code",
               "expr": "vmi_metrics_gen_invocation_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -2586,7 +2583,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 158
+            "y": 16
           },
           "id": 49,
           "interval": "${interval}",
@@ -2613,7 +2610,7 @@
               "editorMode": "code",
               "expr": "vmi_metrics_gen_byte_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -2688,7 +2685,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 158
+            "y": 16
           },
           "id": 62,
           "options": {
@@ -2714,7 +2711,7 @@
               "editorMode": "code",
               "expr": "vmi_metrics_gen_byte_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=~\"${gen_id}\"}\n/ on(vmi_inst,hostname) group_left\nvmi_metrics_gen_dtime_sec{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\",gen_id=\"internal_metrics\"}",
               "interval": "${interval}",
-              "legendFormat": "{{gen_id}}({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "{{gen_id}}(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             }
@@ -2802,7 +2799,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 9
+            "y": 134
           },
           "id": 21,
           "options": {
@@ -2828,7 +2825,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_sys_bytes{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "sys({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "sys(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             },
@@ -2840,7 +2837,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_heap_bytes{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "heap({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "heap(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "B"
             },
@@ -2852,7 +2849,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_heap_sys_bytes{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "heap_sys({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "heap_sys(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "C"
             }
@@ -2925,7 +2922,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 9
+            "y": 134
           },
           "id": 23,
           "options": {
@@ -2951,7 +2948,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_malloc_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "malloc({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "malloc(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "A"
             },
@@ -2963,7 +2960,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_free_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "free({{hostname}}/{{vmi_inst}})",
+              "legendFormat": "free(host={{hostname}},inst={{vmi_inst}})",
               "range": true,
               "refId": "B"
             }
@@ -3036,7 +3033,7 @@
             "h": 8,
             "w": 7,
             "x": 16,
-            "y": 9
+            "y": 134
           },
           "id": 24,
           "options": {
@@ -3062,7 +3059,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_in_use_object_count{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{hostname}}/{{vmi_inst}}",
+              "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
               "range": true,
               "refId": "A"
             }
@@ -3137,7 +3134,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 17
+            "y": 142
           },
           "id": 19,
           "options": {
@@ -3163,7 +3160,7 @@
               "editorMode": "code",
               "expr": "vmi_go_num_goroutine{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{hostname}}/{{vmi_inst}}",
+              "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
               "range": true,
               "refId": "A"
             }
@@ -3238,7 +3235,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 17
+            "y": 142
           },
           "id": 25,
           "options": {
@@ -3264,7 +3261,7 @@
               "editorMode": "code",
               "expr": "vmi_go_mem_gc_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{hostname}}/{{vmi_inst}}",
+              "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
               "range": true,
               "refId": "A"
             }
@@ -3332,38 +3329,13 @@
               },
               "unit": "percent"
             },
-            "overrides": [
-              {
-                "__systemRef": "hideSeriesFrom",
-                "matcher": {
-                  "id": "byNames",
-                  "options": {
-                    "mode": "exclude",
-                    "names": [
-                      "Emys-MacBook-Air/refvmi"
-                    ],
-                    "prefix": "All except:",
-                    "readOnly": true
-                  }
-                },
-                "properties": [
-                  {
-                    "id": "custom.hideFrom",
-                    "value": {
-                      "legend": false,
-                      "tooltip": true,
-                      "viz": true
-                    }
-                  }
-                ]
-              }
-            ]
+            "overrides": []
           },
           "gridPos": {
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 17
+            "y": 142
           },
           "id": 55,
           "options": {
@@ -3389,7 +3361,7 @@
               "editorMode": "code",
               "expr": "vmi_proc_pcpu{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
               "interval": "${interval}",
-              "legendFormat": "{{hostname}}/{{vmi_inst}}",
+              "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
               "range": true,
               "refId": "A"
             }
@@ -3591,6 +3563,6 @@
   "timezone": "browser",
   "title": "Internal Metrics (Ref)",
   "uid": "internal-metrics-ref",
-  "version": 1774385728,
+  "version": 1774463699,
   "weekStart": ""
 }

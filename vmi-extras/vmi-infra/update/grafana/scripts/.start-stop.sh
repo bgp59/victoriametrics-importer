@@ -39,6 +39,21 @@ kill_wait_proc() {
     return 1
 }
 
+make_dir_follow_link() {
+    (
+        set +ex
+        for d in $*; do
+            set +e
+            to=$(readlink $d)
+            if [[ "$to" != "" && ! -d "$to" ]]; then
+                (set -ex; mkdir -p $to)
+            elif [[ ! -d $d ]]; then
+                (set -ex; mkdir -p $d)
+            fi || return 1
+        done
+    )
+}
+
 case "$this_script" in
     start*)
         set -e
@@ -48,7 +63,7 @@ case "$this_script" in
         (
             set -x
             cd $root_dir
-            mkdir -p out
+            make_dir_follow_link data log out
             setsid grafana server --config conf/grafana.ini >out/grafana.out 2>out/grafana.err </dev/null &
         )
     ;;

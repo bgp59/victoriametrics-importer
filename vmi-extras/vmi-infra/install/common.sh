@@ -42,6 +42,8 @@ make_runtime_dirs() {
         (set -x; mkdir -p $runtime_dir) || return 1
         if [[ "$(realpath $root_dir)" == $(realpath $runtime_dir) ]]; then
             runtime_dir=
+        else
+            runtime_dir=$(realpath $runtime_dir) 
         fi
     fi
 

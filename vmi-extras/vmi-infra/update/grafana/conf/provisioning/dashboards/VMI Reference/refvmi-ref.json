@@ -137,7 +137,7 @@
           },
           "editorMode": "code",
           "expr": "refvmi_gauge{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
-          "legendFormat": "{{hostname}}/{{vmi_inst}}",
+          "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
           "range": true,
           "refId": "A"
         }
@@ -230,7 +230,7 @@
           },
           "editorMode": "code",
           "expr": "refvmi_counter_delta{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
-          "legendFormat": "{{hostname}}/{{vmi_inst}}",
+          "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
           "range": true,
           "refId": "A"
         }
@@ -323,7 +323,7 @@
           },
           "editorMode": "code",
           "expr": "refvmi_counter_rate{vmi_inst=~\"${vmi_inst}\",hostname=~\"${hostname}\"}",
-          "legendFormat": "{{hostname}}/{{vmi_inst}}",
+          "legendFormat": "host={{hostname}},inst={{vmi_inst}}",
           "range": true,
           "refId": "A"
         }
@@ -398,7 +398,7 @@
           "refId": "A"
         }
       ],
-      "title": "Categorical Timeline For ${vmi_inst}/${hostname}",
+      "title": "Categorical Timeline For host=${hostname},inst=${vmi_inst}",
       "type": "status-history"
     },
     {
@@ -565,9 +565,9 @@
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
-          "text": "refvmi",
-          "value": "refvmi"
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",

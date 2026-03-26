@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:latest
 
 ARG TARGETARCH
 
@@ -17,13 +17,14 @@ RUN \
         man-db \
         rsync \
         sudo \
-        strace
+        strace \
+        vim \
+    && apt -y upgrade
 
-RUN \
-    apt-get install -y \
-        python3.9-full \
-        python3-pip \
-    && pip install -U pip
+RUN apt-get install -y \
+    python3-full \
+    python3-pip
+
 
 ENV TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
