@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
-"""
-Save a WIP VMI dashboard into the provisioned area.
+description = """
+Save work-in-progress dashboard into the provisioned area.
 """
 
 import argparse
@@ -11,24 +11,27 @@ import sys
 import time
 
 from definitions import (
+    default_folder,
     default_grafana_password,
     default_grafana_root_url,
     default_grafana_user,
     default_out_subdir,
-    default_folder,
-    wip_dashboard_title_suffix,
     ref_dashboard_title_suffix,
+    wip_dashboard_title_suffix,
 )
-
 from grafana import (
     GrafanaClient,
+    folder_dash_title,
     from_to_suffix_title,
     normalize_title,
-    folder_dash_title,
 )
+from help_formatter import CustomWidthFormatter
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=CustomWidthFormatter,
+        description=description,
+    )
     parser.add_argument(
         "-r",
         "--root-url",
@@ -90,7 +93,7 @@ if __name__ == "__main__":
         args.root_url, user=args.user, password=args.password
     )
 
-    out_dir, folder, title  = args.out_dir, args.folder, args.title
+    out_dir, folder, title = args.out_dir, args.folder, args.title
     if out_dir is None:
         out_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -156,7 +159,7 @@ if __name__ == "__main__":
     with open(out_file, "wt") as f:
         json.dump(dashboard, f, indent=2)
         f.write("\n")
-    
+
     print(
         f'Dashboard {folder_dash_title(dashboard_meta.get("folderTitle"), wip_dashboard_title)!r} saved into {out_file!r} using {dashboard["title"]!r} title',
         file=sys.stderr,

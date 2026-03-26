@@ -2,7 +2,7 @@
 
 import sys
 
-min_python_ver = (3, 9)
+min_python_ver = (3, 10)
 curr_python_ver = (
     sys.version_info.major,
     sys.version_info.minor,

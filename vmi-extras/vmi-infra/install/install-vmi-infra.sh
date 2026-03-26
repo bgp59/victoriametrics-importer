@@ -13,6 +13,12 @@ not set.
 
 Default RUNTIME_DIR is \$VMI_INFRA_RUNTIME if VMI_INFRA_RUNTIME is defined, 
 otherwise it will use ROOT_DIR.
+
+The -b/--base-only flag is reserved for Docker image build, since it will
+only install the packages without applying the customization. This is in
+order to separate the one-off install from updates into 2 container layers
+to speed up rebuilds when the custom part changes (e.g. do not redownload
+Grafana because a provisioned dashboard has changed).
 "
 
 set -e

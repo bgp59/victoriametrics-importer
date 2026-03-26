@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-"""
+description = """
 All VMI reference dashboards are provisioned so they cannot be changed in place.
 This script will make an editable copy under the work-in-progress folder.
 """
@@ -21,9 +21,13 @@ from grafana import (
     folder_dash_title,
     from_to_suffix_title,
 )
+from help_formatter import CustomWidthFormatter
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=CustomWidthFormatter,
+        description=description,
+    )
     parser.add_argument(
         "-r",
         "--root-url",

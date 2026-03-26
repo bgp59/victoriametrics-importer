@@ -18,6 +18,9 @@ Default VMI_INFRA_ROOT is \$HOME/vmi-infra.
 Default RUNTIME_DIR is \$VMI_INFRA_RUNTIME/victoria-metrics, 
 if VMI_INFRA_RUNTIME is defined, otherwise it will 
 use ROOT_DIR.
+
+The -b/--base-only flag is reserved for Docker image build, see
+install-vmi-infra.sh.
 "
 
 set -e
