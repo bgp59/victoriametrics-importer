@@ -112,6 +112,14 @@ vmi_config:
     # https://pkg.go.dev/time#ParseDuration
     healthy_rotate_interval: 5m
 
+    # Random offset to add/subtract to/from the rotation interval to ensure that
+    # importers started at the same time do not reconnect at the same time
+    # (essentially ensure uniform load spreading). It can be expressed either as
+    # a percentage (% suffix) or as a duration (see healthy_rotate_interval
+    # above). The interval will be adjusted by r * offset, r a random value in
+    # -1..1 range.
+    healthy_rotate_interval_offset: 20%
+
     # After what time to reset the cumulative error count of a failed endpoint.
     # A failed endpoint is moved to the back of the usable list, as long as the
     # cumulative error count is less than the threshold. If enough time passes
