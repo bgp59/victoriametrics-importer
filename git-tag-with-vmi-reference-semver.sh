@@ -5,7 +5,7 @@ this_script=${0##*/}
 usage="
 Usage: $this_script [-f|--force]
 
-Apply SEMVER tag locally and to the remote. Requires
+Apply extras SEMVER tag locally and to the remote. Requires
 a clean git status. Use --force to reapply the tag.
 
 "
@@ -35,20 +35,13 @@ export PATH="$project_root_dir/vmi-extras/devtools${PATH+:}${PATH}"
 
 set -e
 # Must have semver:
-semver=$(cat $project_root_dir/vmi/semver.txt)
-# Ensure tag compliance w/ https://go.dev/doc/modules/version-numbers and
-# https://go.dev/ref/mod#vcs-version
-case "$semver" in
-    "")
-        echo >&2 "$this_script: missing mandatory $semver"
-        exit 1
-        ;;
-    v*) tag="vmi/$semver";;
-    *) tag="vmi/v$semver";;
-esac
+semver=$(cat $project_root_dir/reference/semver.txt)
+if [[ -z "$semver" ]]; then
+    echo >&2 "$this_script: missing mandatory $semver"
+    exit 1
+fi
 
 set -x
-exec git-tag.sh $force $tag
+exec git-tag.sh $force vmi-reference-$semver
 
- 
 

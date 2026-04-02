@@ -28,6 +28,7 @@
   - [Support For Testing](#support-for-testing)
   - [Command Line Arguments](#command-line-arguments)
   - [Extras](#extras)
+  - [Reference Code](#reference-code)
   - [Internal Metrics](#internal-metrics)
 - [Module Developer Guide](#module-developer-guide)
   - [Test Data](#test-data)
@@ -362,6 +363,10 @@ If extra custom arguments are needed, they should be defined, parsed and process
 ### Extras
 
 See [vmi-extras](vmi-extras/) for additional tools.
+
+### Reference Code
+
+See [reference](reference/) for instructions on how to build and run the reference code.
 
 ### Internal Metrics
 
