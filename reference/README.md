@@ -37,7 +37,7 @@ All metrics can be configured with a full metrics factor implementing the [Reduc
   - outside this project, using **VMI Reference x.y.y** downloaded from [releases](https://github.com/bgp59/victoriametrics-importer/releases/)
 
     ```bash
-    curl -L https://github.com/bgp59/victoriametrics-importer/releases/download/vmi-reference-0.0.2/vmi-reference-0.0.2.tar.gz | tar xzf -
+    curl -s -L https://github.com/bgp59/victoriametrics-importer/releases/download/vmi-reference-0.0.2/vmi-reference-0.0.2.tar.gz | tar xzf -
     cd vmi-reference
     ./go-build
     ```
